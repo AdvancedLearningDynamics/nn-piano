@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Numbered Notes Piano</title>
 <style>
 :root {
@@ -717,7 +720,12 @@ function rewind(){if(S.song){S.song.rewind();S.correct=0;S.total=0;autoSwitchOct
 
 function setMode(m){S.letters=m==='abc';document.getElementById('btn-num').classList.toggle('on',!S.letters);document.getElementById('btn-abc').classList.toggle('on',S.letters);buildOctSel();updateKeyLabels();if(S.song)buildNoteDisplay();}
 
-function goFullscreen(){const el=document.getElementById('app');const req=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen;if(req)req.call(el);}
+function goFullscreen(){
+  const el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
+  if(req){req.call(el);}
+  else{alert('For full screen on iPhone:\n1. Tap the Share button ⬆\n2. Tap "Add to Home Screen"\n3. Open the app from your home screen');}
+}
 function openSettings(){buildSkinsGrid();buildSoundGrid();document.getElementById('overlay').classList.add('open');document.getElementById('sheet').classList.add('open');}
 function closeSettings(){document.getElementById('overlay').classList.remove('open');document.getElementById('sheet').classList.remove('open');}
 

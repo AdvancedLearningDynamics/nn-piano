@@ -46,8 +46,8 @@ html,body {
 /* ── App shell — fixed landscape-phone proportions ─────────────────── */
 #app {
   /* landscape phone: ~850×390 feels right for a standard phone on its side */
-  width:  min(100vw, calc(100vh * 2.18));
-  height: min(100vh, calc(100vw / 2.18));
+  width:  min(100dvw, calc(100dvh * 2.18));
+  height: min(100dvh, calc(100dvw / 2.18));
   display:flex; flex-direction:column;
   background:var(--bg);
   border-radius:6px;
@@ -346,6 +346,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
       </div>
       <button class="icon-btn" onclick="rewind()">↺</button>
       <span class="hd-score" id="score">—</span>
+      <button class="hd-btn" onclick="goFullscreen()" title="Full Screen">⛶</button>
       <button class="hd-btn" onclick="openSettings()">⚙</button>
     </div>
 
@@ -716,6 +717,7 @@ function rewind(){if(S.song){S.song.rewind();S.correct=0;S.total=0;autoSwitchOct
 
 function setMode(m){S.letters=m==='abc';document.getElementById('btn-num').classList.toggle('on',!S.letters);document.getElementById('btn-abc').classList.toggle('on',S.letters);buildOctSel();updateKeyLabels();if(S.song)buildNoteDisplay();}
 
+function goFullscreen(){const el=document.getElementById('app');const req=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen;if(req)req.call(el);}
 function openSettings(){buildSkinsGrid();buildSoundGrid();document.getElementById('overlay').classList.add('open');document.getElementById('sheet').classList.add('open');}
 function closeSettings(){document.getElementById('overlay').classList.remove('open');document.getElementById('sheet').classList.remove('open');}
 

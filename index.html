@@ -670,13 +670,27 @@ function buildNoteDisplay(){
   });
   refreshNoteDisplay();
 }
+const CANDY_KEY_COLORS={
+  'C':'#E85050','CsDf':'#5C2810','D':'#E87830','DsEf':'#4A2008',
+  'E':'#E8D030','F':'#48C848','FsGf':'#3A1808','G':'#40C8D8',
+  'GsAf':'#3A1808','A':'#7048D0','AsBf':'#4A2008','B':'#E850A0'
+};
 function refreshNoteDisplay(){
   if(!S.song)return;const pos=S.song.pos;
   S.song.notes.forEach((note,i)=>{
     const cell=document.getElementById('nc-'+i),bub=document.getElementById('nb-'+i);if(!cell||!bub)return;
     if(note.isRest)cell.className='note-cell rest';
     else if(i<pos) cell.className='note-cell played';
-    else if(i===pos)cell.className='note-cell current';
+    else if(i===pos){
+      cell.className='note-cell current';
+      if(S.skin==='candy'&&CANDY_KEY_COLORS[note.name]){
+        const c=CANDY_KEY_COLORS[note.name];
+        bub.style.background=c; bub.style.borderColor=c;
+        bub.style.color='#fff'; bub.style.boxShadow=`0 0 18px ${c}90`;
+      } else {
+        bub.style.background=''; bub.style.borderColor=''; bub.style.color=''; bub.style.boxShadow='';
+      }
+    }
     else            cell.className='note-cell upcoming';
     bub.textContent=note.getLabel(S.letters);
   });

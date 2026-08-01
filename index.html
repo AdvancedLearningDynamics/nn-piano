@@ -174,8 +174,8 @@ html,body {
 }
 .note-cell.upcoming .note-bubble { border-color:rgba(201,160,58,.45); color:var(--text); }
 .note-cell.current .note-bubble {
-  border-color:var(--next); background:var(--next); color:#0F0E0C;
-  box-shadow:0 0 18px var(--next-glow); transform:scale(1.12);
+  border-color:var(--bubble-color,var(--next)); background:var(--bubble-color,var(--next)); color:var(--bubble-text,#0F0E0C);
+  box-shadow:0 0 18px var(--bubble-glow,var(--next-glow)); transform:scale(1.12);
 }
 .note-cell.correct-flash .note-bubble { background:var(--ok); border-color:var(--ok); color:#fff; }
 .note-lyric {
@@ -679,16 +679,22 @@ function refreshNoteDisplay(){
   if(!S.song)return;const pos=S.song.pos;
   S.song.notes.forEach((note,i)=>{
     const cell=document.getElementById('nc-'+i),bub=document.getElementById('nb-'+i);if(!cell||!bub)return;
+    bub.style.removeProperty('--bubble-color');
+    bub.style.removeProperty('--bubble-glow');
+    bub.style.removeProperty('--bubble-text');
     if(note.isRest)cell.className='note-cell rest';
     else if(i<pos) cell.className='note-cell played';
     else if(i===pos){
       cell.className='note-cell current';
       if(S.skin==='candy'&&CANDY_KEY_COLORS[note.name]){
         const c=CANDY_KEY_COLORS[note.name];
-        bub.style.background=c; bub.style.borderColor=c;
-        bub.style.color='#fff'; bub.style.boxShadow=`0 0 18px ${c}90`;
+        bub.style.setProperty('--bubble-color',c);
+        bub.style.setProperty('--bubble-glow',c+'90');
+        bub.style.setProperty('--bubble-text','#fff');
       } else {
-        bub.style.background=''; bub.style.borderColor=''; bub.style.color=''; bub.style.boxShadow='';
+        bub.style.removeProperty('--bubble-color');
+        bub.style.removeProperty('--bubble-glow');
+        bub.style.removeProperty('--bubble-text');
       }
     }
     else            cell.className='note-cell upcoming';

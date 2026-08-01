@@ -291,9 +291,11 @@ html,body {
 [data-k="CsDf"]{left:10.3%;} [data-k="DsEf"]{left:24.5%;}
 [data-k="FsGf"]{left:53.2%;} [data-k="GsAf"]{left:67.4%;} [data-k="AsBf"]{left:81.7%;}
 
-.klbl   { font-family:var(--font); font-weight:700; pointer-events:none; line-height:1; text-align:center; }
-.klbl.w { font-size:clamp(32px,7vh,48px); color:var(--wk-lbl); font-weight:800; }
-.klbl.b { font-size:clamp(22px,5vh,34px); color:var(--bk-lbl); font-weight:800; }
+.klbl   { font-family:var(--font); font-weight:700; pointer-events:none; line-height:1; text-align:center; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; transition:background .15s, box-shadow .15s; }
+.klbl.w { font-size:clamp(32px,7vh,48px); color:var(--wk-lbl); font-weight:800; width:1.25em; height:1.25em; }
+.klbl.b { font-size:clamp(22px,5vh,34px); color:var(--bk-lbl); font-weight:800; width:1.25em; height:1.25em; }
+.wk.next .klbl.w { background:rgba(255,255,255,0.92); color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.25); }
+.bk.next .klbl.b { background:rgba(255,255,255,0.88); color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.30); }
 
 /* ── Settings sheet ──────────────────────────────────────────────────── */
 .overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100; opacity:0; pointer-events:none; transition:opacity .25s; }

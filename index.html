@@ -206,8 +206,8 @@ html,body {
 /* Guitar note strip */
 .guitar-mode .panel { background:var(--surface); overflow:hidden; }
 .guitar-mode .status { display:none; }
-.guitar-mode .note-bubble { width:42px; height:42px; font-size:17px; }
-.guitar-mode .note-lyric { font-size:16px; max-width:50px; }
+.guitar-mode .note-bubble { width:var(--gb-size,42px); height:var(--gb-size,42px); font-size:var(--gb-fs,17px); }
+.guitar-mode .note-lyric { font-size:var(--gl-fs,16px); max-width:var(--gb-size,50px); }
 .piano-case-top {
   flex-shrink:0; height:7px;
   background:linear-gradient(180deg,var(--case-a) 0%,var(--case-b) 100%);
@@ -401,7 +401,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 .fb-inlay::after,.fb-inlay-top::after,.fb-inlay-bot::after {
   content:''; position:absolute;
   width:11px; height:11px;
-  border-radius:50%; background:rgba(0,0,0,0.30); border:none;
+  border-radius:50%; background:#1A1A1A; border:none;
   left:50%; z-index:1; pointer-events:none;
 }
 .fb-inlay::after     { bottom:0; transform:translate(-50%,50%); }
@@ -442,7 +442,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
   z-index:3;
 }
 .fb-fret-num {
-  font-size:8px; font-weight:700; color:rgba(255,255,255,0.75);
+  font-size:12px; font-weight:700; color:rgba(255,255,255,0.75);
   text-align:center; padding-bottom:3px;
   background:rgba(0,0,0,0.45);
 }
@@ -901,7 +901,7 @@ const S={octave:'4',letters:false,song:null,correct:0,total:0,skin:'candy',sound
 // ── Guitar constants ──────────────────────────────────────────────────────
 const GUITAR_TUNING=[64,59,55,50,45,40]; // MIDI: E4,B3,G3,D3,A2,E2 (str 0=high E)
 const GUITAR_STR_NAMES=['E','B','G','D','A','E'];
-const GUITAR_MAX_FRET=12;
+const GUITAR_MAX_FRET=7;
 // Build MIDI→{str,fret} map, preferring lowest string index (highest-pitch string)
 const GUITAR_POS_MAP=(()=>{const m={};for(let s=0;s<6;s++)for(let f=0;f<=GUITAR_MAX_FRET;f++){const midi=GUITAR_TUNING[s]+f;if(!(midi in m))m[midi]={str:s,fret:f};}return m;})();
 function noteToMidi(name,oct){return(parseInt(oct)+1)*12+KEY_NAMES.indexOf(name);}
@@ -1304,6 +1304,15 @@ document.getElementById('inst-sel').value='piano';
   new ResizeObserver(updateKeyFont).observe(document.getElementById('wkeys'));
   // Rebuild fretboard circles when container resizes
   new ResizeObserver(()=>{if(S.instrument==='guitar')buildFretboard();}).observe(document.getElementById('fretboard'));
+  new ResizeObserver(entries=>{
+    const h=entries[0].contentRect.height;
+    const sz=Math.round(Math.min(Math.max(h*0.28,28),54));
+    const fs=Math.round(sz*0.42);
+    const lfs=Math.round(sz*0.38);
+    document.documentElement.style.setProperty('--gb-size',sz+'px');
+    document.documentElement.style.setProperty('--gb-fs',fs+'px');
+    document.documentElement.style.setProperty('--gl-fs',lfs+'px');
+  }).observe(document.getElementById('panel'));
 })();
 // Wrap logo in link
 (function(){

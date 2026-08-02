@@ -1019,6 +1019,9 @@ function switchInstrument(id){
   document.getElementById('btn-oct3').style.display=isGuitar?'none':'';
   updateOctSelVisibility();
   if(isGuitar){buildFretboard();}else{buildKeyboard();}
+  clearTimeout(_idleTimer);
+  document.getElementById('app').classList.remove('song-started');
+  if(S.song){buildNoteDisplay();}
   highlightNext();
 }
 

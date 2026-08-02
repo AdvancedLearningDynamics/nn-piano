@@ -49,9 +49,9 @@ html,body {
 
 /* ── App shell — fixed landscape-phone proportions ─────────────────── */
 #app {
-  /* landscape phone: ~850×390 feels right for a standard phone on its side */
+  /* fill available space; 2.18:1 max ratio for very wide viewports */
   width:  min(100dvw, calc(100dvh * 2.18));
-  height: min(100dvh, calc(100dvw / 2.18));
+  height: 100dvh;
   display:flex; flex-direction:column;
   background:var(--bg);
   border-radius:6px;
@@ -184,6 +184,7 @@ html,body {
 .note-lyric {
   font-size:22px; font-weight:800; color:var(--text); text-align:center;
   max-width:58px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;
 }
 .note-cell.current .note-lyric { color:var(--text); }
 
@@ -200,7 +201,7 @@ html,body {
   padding:4px 8px 6px;
   background:var(--bg);
 }
-.guitar-mode .bot { flex:0 0 21vh; max-height:165px; min-height:120px; padding:0; }
+.guitar-mode .bot { flex:0 0 28vh; min-height:120px; padding:0; }
 .guitar-mode .top { flex:1; border-bottom:1px solid var(--border); }
 /* Guitar note strip */
 .guitar-mode .panel { background:var(--surface); overflow:hidden; }
@@ -346,7 +347,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
     repeating-linear-gradient(89deg,
       transparent 0px, transparent 55px,
       rgba(255,255,255,0.04) 55px, rgba(255,255,255,0.04) 57px),
-    linear-gradient(180deg,#A0622A 0%,#8B4E1E 35%,#9A5C28 65%,#7A3E14 100%);
+    linear-gradient(180deg,#D9A070 0%,#CA8B5A 35%,#D49668 65%,#BC7848 100%);
   overflow:hidden;
 }
 .guitar-mode #fretboard { display:grid; }
@@ -359,18 +360,24 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 .fb-cell::before {
   content:''; position:absolute; left:0; right:0; top:calc(50% - var(--str-h,1px)/2);
   height:var(--str-h,1px); background:rgba(215,195,145,0.80); z-index:1; pointer-events:none;
+  box-shadow:0 1.5px 2px rgba(0,0,0,0.40);
 }
 /* Open-string column — dark headstock side, right edge = nut */
-.fb-cell.fb-open { border-right:6px solid #E8E0C8; background:rgba(0,0,0,0.25); }
+.fb-cell.fb-open { border-right:6px solid #E8E0C8; background:transparent; justify-content:flex-end; padding-right:4px; }
+/* String line extends through the full 6px nut and 2px into fret 1 */
+.fb-cell.fb-open::before { right:-8px; }
 /* Fret wires — left border on non-open cols */
-.fb-cell:not(.fb-open) { border-left:2px solid rgba(185,165,110,0.55); }
-/* Inlay dot — only on middle string row (s=2) at inlay frets */
-.fb-inlay::after {
-  content:''; position:absolute; width:11px; height:11px;
-  border-radius:50%; background:rgba(255,248,220,0.28);
-  border:1px solid rgba(255,255,255,0.15);
-  left:50%; bottom:2px; transform:translateX(-50%); z-index:1; pointer-events:none;
+.fb-cell:not(.fb-open) { border-left:2px solid rgba(100,75,40,0.70); }
+/* Inlay dots — single dot (frets 3/5/7/9) and double dot (fret 12) */
+.fb-inlay::after,.fb-inlay-top::after,.fb-inlay-bot::after {
+  content:''; position:absolute;
+  width:7px; height:7px;
+  border-radius:50%; background:rgba(0,0,0,0.30); border:none;
+  left:50%; z-index:1; pointer-events:none;
 }
+.fb-inlay::after    { bottom:0; transform:translate(-50%,50%); }
+.fb-inlay-top::after { bottom:0; transform:translate(-50%,50%); }
+.fb-inlay-bot::after { top:0;    transform:translate(-50%,-50%); }
 /* Note circle */
 .fb-note {
   position:relative; z-index:2;
@@ -388,7 +395,8 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 .fb-note.next {
   background:#fff; color:#111;
   border-color:transparent;
-  box-shadow:0 0 18px 6px rgba(255,255,255,0.65);
+  box-shadow:none;
+  width:calc(var(--fn-size,30px) * 1.35); height:calc(var(--fn-size,30px) * 1.35);
 }
 .fb-note.fb-pressed {
   background:rgba(255,255,255,0.70); color:#111; border-color:transparent;
@@ -400,8 +408,9 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
   z-index:3;
 }
 .fb-fret-num {
-  font-size:10px; font-weight:700; color:rgba(255,255,255,0.35);
+  font-size:8px; font-weight:700; color:rgba(255,255,255,0.75);
   text-align:center; padding-bottom:3px;
+  background:rgba(0,0,0,0.45);
 }
 /* String name labels (left edge) */
 .fb-str-label {
@@ -840,7 +849,7 @@ const S={octave:'4',letters:false,song:null,correct:0,total:0,skin:'candy',sound
 // ── Guitar constants ──────────────────────────────────────────────────────
 const GUITAR_TUNING=[64,59,55,50,45,40]; // MIDI: E4,B3,G3,D3,A2,E2 (str 0=high E)
 const GUITAR_STR_NAMES=['E','B','G','D','A','E'];
-const GUITAR_MAX_FRET=7;
+const GUITAR_MAX_FRET=12;
 // Build MIDI→{str,fret} map, preferring lowest string index (highest-pitch string)
 const GUITAR_POS_MAP=(()=>{const m={};for(let s=0;s<6;s++)for(let f=0;f<=GUITAR_MAX_FRET;f++){const midi=GUITAR_TUNING[s]+f;if(!(midi in m))m[midi]={str:s,fret:f};}return m;})();
 function noteToMidi(name,oct){return(parseInt(oct)+1)*12+KEY_NAMES.indexOf(name);}
@@ -866,8 +875,8 @@ function buildFretboard(){
   // Note circle size via CSS vars — sized at build; ResizeObserver will update
   const bh=board.offsetHeight||200, bw=board.offsetWidth||400;
   const cellH=bh/(STRINGS+1), cellW=(bw-96)/FRETS;
-  const fnSize=Math.round(Math.min(cellH*0.55,cellW*0.52,36));
-  const fnFs=Math.round(fnSize*0.90);
+  const fnSize=Math.round(Math.min(cellH*0.70,cellW*0.65,44));
+  const fnFs=Math.round(fnSize*0.95);
   board.style.setProperty('--fn-size',fnSize+'px');
   board.style.setProperty('--fn-fs',fnFs+'px');
 
@@ -875,8 +884,8 @@ function buildFretboard(){
     const strThick=Math.max(1,(0.9+s*0.45))+'px';
     for(let f=0;f<=FRETS;f++){
       const cell=document.createElement('div');
-      const isInlay=(f===3||f===5||f===7)&&s===2;
-      cell.className='fb-cell'+(f===0?' fb-open':'')+(isInlay?' fb-inlay':'');
+      const inlayCls=(f===12&&s===1)?' fb-inlay-top':(f===12&&s===3)?' fb-inlay-bot':((f===3||f===5||f===7||f===9)&&s===2)?' fb-inlay':'';
+      cell.className='fb-cell'+(f===0?' fb-open':'')+inlayCls;
       cell.style.setProperty('--str-h',strThick);
       const midi=GUITAR_TUNING[s]+f;
       const circ=document.createElement('div');
@@ -901,12 +910,20 @@ function buildFretboard(){
   highlightFretNote();
 }
 
+function guitarMidi(name,oct){return noteToMidi(name,oct)-12;}
+function noteLabel(note,letters){
+  if(S.instrument!=='guitar'||note.isRest||note.isTied||note.isPhrase)return note.getLabel(letters);
+  const m=guitarMidi(note.name,note.octave);
+  const tName=KEY_NAMES[((m%12)+12)%12];
+  const tOct=String(Math.floor(m/12)-1);
+  return keyLabel(tName,tOct,letters);
+}
 function highlightFretNote(){
   document.querySelectorAll('.fb-note.next').forEach(e=>e.classList.remove('next'));
   if(!S.song||S.song.done())return;
   const n=S.song.cur();
   if(!n||n.isRest||n.isTied||n.isPhrase)return;
-  const midi=noteToMidi(n.name,n.octave);
+  const midi=guitarMidi(n.name,n.octave);
   const pos=GUITAR_POS_MAP[midi];
   if(!pos)return;
   const el=document.getElementById(`fn-${pos.str}-${pos.fret}`);
@@ -925,7 +942,10 @@ function pressFret(str,fret){
   let note=S.song.cur();
   while(note&&(note.isRest||note.isTied)){S.song.advance();note=S.song.cur();}
   if(!note)return;
-  S.total++;const hit=(name===note.name&&oct===note.octave);
+  const tMidi=guitarMidi(note.name,note.octave);
+  const tName=KEY_NAMES[((tMidi%12)+12)%12];
+  const tOct=String(Math.floor(tMidi/12)-1);
+  S.total++;const hit=(name===tName&&oct===tOct);
   if(hit){
     S.correct++;const cell=document.getElementById('nc-'+S.song.pos);
     if(cell){cell.classList.add('correct-flash');setTimeout(()=>cell.classList.remove('correct-flash'),300);}
@@ -1033,7 +1053,7 @@ function buildNoteDisplay(){
   S.song.notes.forEach((note,i)=>{
     if(note.isPhrase){const sp=document.createElement('div');sp.className='phrase-break';sp.id='nc-'+i;track.appendChild(sp);return;}
     const cell=document.createElement('div');cell.className='note-cell '+(note.isRest?'rest':'upcoming');cell.id='nc-'+i;
-    const bub=document.createElement('div');bub.className='note-bubble';bub.id='nb-'+i;bub.textContent=note.getLabel(S.letters);
+    const bub=document.createElement('div');bub.className='note-bubble';bub.id='nb-'+i;bub.textContent=noteLabel(note,S.letters);
     const lyr=document.createElement('div');lyr.className='note-lyric';lyr.textContent=note.lyric||'';
     cell.appendChild(bub);cell.appendChild(lyr);track.appendChild(cell);
   });
@@ -1067,7 +1087,7 @@ function refreshNoteDisplay(){
       }
     }
     else            cell.className='note-cell upcoming';
-    bub.textContent=note.getLabel(S.letters);
+    bub.textContent=noteLabel(note,S.letters);
   });
   const cur=document.getElementById('nc-'+pos),track=document.getElementById('notes-track'),panel=document.getElementById('panel');
   if(cur&&track&&panel){const anchor=S.instrument==='guitar'?70:144;const offset=cur.offsetLeft-anchor;track.style.transform=`translateX(${-offset}px)`;}
@@ -1195,8 +1215,8 @@ document.getElementById('song-sel').addEventListener('change',e=>loadSong(e.targ
 document.getElementById('skin-sel').addEventListener('change',e=>applySkin(e.target.value));
 
 buildKeyboard();
-switchInstrument('guitar');
-document.getElementById('inst-sel').value='guitar';
+switchInstrument('piano');
+document.getElementById('inst-sel').value='piano';
 // Dynamic key font sizing — updates on every resize
 (function(){
   function updateKeyFont(){

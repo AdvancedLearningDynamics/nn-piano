@@ -201,7 +201,7 @@ html,body {
   padding:4px 8px 6px;
   background:var(--bg);
 }
-.guitar-mode .bot { flex:0 0 28vh; min-height:120px; padding:0; }
+.guitar-mode .bot { flex:0 0 50vh; min-height:120px; padding:0; }
 .guitar-mode .top { flex:1; border-bottom:1px solid var(--border); }
 /* Guitar note strip */
 .guitar-mode .panel { background:var(--surface); overflow:hidden; }
@@ -296,10 +296,38 @@ html,body {
 .klbl   { font-family:var(--font); font-weight:700; pointer-events:none; line-height:1; text-align:center; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; transition:background .15s, box-shadow .15s; }
 .klbl.w { font-size:var(--key-font-wk,clamp(32px,7vh,48px)); color:var(--wk-lbl); font-weight:800; width:1.55em; height:1.55em; }
 .klbl.b { font-size:var(--key-font-bk,clamp(22px,5vh,34px)); color:var(--bk-lbl); font-weight:800; width:1.55em; height:1.55em; }
-.wk.next .klbl.w { background:rgba(255,255,255,0.92); color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.25); }
-.bk.next .klbl.b { background:rgba(255,255,255,0.88); color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.30); }
+.wk.next .klbl.w { background:rgba(255,255,255,0.92); color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.25); animation:key-pulse 1.2s ease-in-out infinite; }
+.bk.next .klbl.b { background:rgba(255,255,255,0.88); color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.30); animation:key-pulse 1.2s ease-in-out infinite; }
+.song-started .wk.next .klbl.w { animation:none; }
+.song-started .bk.next .klbl.b { animation:none; }
+.song-started .fb-note.next     { animation:none; }
+@keyframes key-pulse {
+  0%,100% { transform:scale(1);    box-shadow:0 0 0px  0px rgba(255,255,255,0.0); }
+  50%      { transform:scale(1.45); box-shadow:0 0 16px 8px rgba(255,255,255,0.55); }
+}
+@keyframes hint-blink {
+  0%,100% { opacity:1;    transform:scale(1); }
+  20%,60% { opacity:0.08; transform:scale(0.80); }
+  40%,80% { opacity:1;    transform:scale(1.15); }
+}
+.hint-blink { animation:hint-blink 0.5s ease-in-out !important; }
 /* 3-octave mode */
 .hd-btn.on { background:var(--accent); color:#0F0E0C; }
+.vol-arrows {
+  display:flex; align-items:center; gap:0;
+  border:1px solid var(--border); border-radius:7px;
+  overflow:hidden; flex-shrink:0;
+}
+.vol-btn {
+  background:none; border:none; border-radius:0;
+  color:var(--accent); font-size:13px;
+  width:24px; height:30px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; flex-shrink:0;
+  transition:background .1s;
+}
+.vol-btn:hover { background:var(--surface-2); }
+.vol-btn:active { background:var(--accent); color:#0F0E0C; }
 .oct3-mode .klbl.w { width:1.3em; height:1.3em; }
 .oct3-mode .klbl.b { width:1.3em; height:1.3em; }
 .oct3-mode .wk.oct-boundary { border-left:3px solid #111 !important; }
@@ -337,6 +365,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 /* ── Guitar fretboard ─────────────────────────────────────────────────── */
 #fretboard {
   display:none; flex:1; position:relative;
+  border:1px solid #111;
   /* Rosewood-style wood grain */
   background:
     repeating-linear-gradient(91deg,
@@ -363,7 +392,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
   box-shadow:0 1.5px 2px rgba(0,0,0,0.40);
 }
 /* Open-string column — dark headstock side, right edge = nut */
-.fb-cell.fb-open { border-right:6px solid #E8E0C8; background:transparent; justify-content:flex-end; padding-right:4px; }
+.fb-cell.fb-open { border-right:6px solid #E8E0C8; background:transparent; }
 /* String line extends through the full 6px nut and 2px into fret 1 */
 .fb-cell.fb-open::before { right:-8px; }
 /* Fret wires — left border on non-open cols */
@@ -371,13 +400,13 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 /* Inlay dots — single dot (frets 3/5/7/9) and double dot (fret 12) */
 .fb-inlay::after,.fb-inlay-top::after,.fb-inlay-bot::after {
   content:''; position:absolute;
-  width:7px; height:7px;
+  width:11px; height:11px;
   border-radius:50%; background:rgba(0,0,0,0.30); border:none;
   left:50%; z-index:1; pointer-events:none;
 }
-.fb-inlay::after    { bottom:0; transform:translate(-50%,50%); }
-.fb-inlay-top::after { bottom:0; transform:translate(-50%,50%); }
-.fb-inlay-bot::after { top:0;    transform:translate(-50%,-50%); }
+.fb-inlay::after     { bottom:0; transform:translate(-50%,50%); }
+.fb-inlay-top::after { top:51%; transform:translate(-50%,-50%); }
+.fb-inlay-bot::after { top:49%; transform:translate(-50%,-50%); }
 /* Note circle */
 .fb-note {
   position:relative; z-index:2;
@@ -385,7 +414,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
   border-radius:50%;
   display:flex; align-items:center; justify-content:center;
   font-size:var(--fn-fs,12px); font-weight:800; line-height:1;
-  color:#1A1A1A;
+  color:rgba(0,0,0,0.28);
   background:transparent;
   border:none;
   cursor:pointer; user-select:none;
@@ -397,6 +426,11 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
   border-color:transparent;
   box-shadow:none;
   width:calc(var(--fn-size,30px) * 1.35); height:calc(var(--fn-size,30px) * 1.35);
+  animation:fb-pulse 1.2s ease-in-out infinite;
+}
+@keyframes fb-pulse {
+  0%,100% { transform:scale(1);    box-shadow:0 0 0px 0px rgba(255,255,255,0.0); }
+  50%      { transform:scale(1.55); box-shadow:0 0 18px 10px rgba(255,255,255,0.55); }
 }
 .fb-note.fb-pressed {
   background:rgba(255,255,255,0.70); color:#111; border-color:transparent;
@@ -460,6 +494,10 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
       <button class="hd-btn" id="btn-play" onclick="togglePlay()" title="Play song">▶</button>
       <button class="icon-btn" onclick="rewind()">↺</button>
       <span class="hd-score" id="score">—</span>
+      <div class="vol-arrows" title="Volume">
+        <button class="vol-btn" onclick="adjustVolume(-10)">◀</button>
+        <button class="vol-btn" onclick="adjustVolume(10)">▶</button>
+      </div>
       <button class="hd-btn" onclick="goFullscreen()" title="Full Screen">⛶</button>
       <button class="hd-btn" onclick="openSettings()">⚙</button>
     </div>
@@ -504,8 +542,8 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
     <div class="sheet-lbl">Volume</div>
     <div class="vol-row">
       <span class="vol-icon">🔈</span>
-      <input type="range" id="vol-slider" min="0" max="100" value="80" oninput="setVolume(this.value)">
-      <span class="vol-pct" id="vol-pct">80%</span>
+      <input type="range" id="vol-slider" min="0" max="100" value="70" oninput="setVolume(this.value)">
+      <span class="vol-pct" id="vol-pct">70%</span>
     </div>
   </div>
   <div class="sheet-sec"><div class="sheet-lbl">Sound</div><div class="sound-grid" id="sound-grid"></div></div>
@@ -785,6 +823,20 @@ function playNote(name,oct){
   });
 }
 function setVolume(v){S.volume=v/100;if(masterGain)masterGain.gain.value=S.volume;document.getElementById('vol-pct').textContent=v+'%';}
+function adjustVolume(delta){
+  const v=Math.min(100,Math.max(0,Math.round(S.volume*100)+delta));
+  setVolume(v);
+  const sl=document.getElementById('vol-slider');if(sl)sl.value=v;
+  if(S.song&&!S.song.done()){
+    let note=S.song.cur();
+    while(note&&(note.isRest||note.isTied||note.isPhrase)){note=S.song.notes[S.song.notes.indexOf(note)+1]||null;}
+    if(note){
+      const name=note.name;
+      const oct=S.instrument==='guitar'?String(Math.floor(guitarMidi(note.name,note.octave)/12)-1):note.octave;
+      playNote(name,oct);
+    }
+  }
+}
 
 function keyLabel(name,oct,letters){const k=KM[name];if(!k)return '';const b=letters?k.s:k.n,o=+oct;return o===7?b+"'''":o===6?b+'"':o===5?b+"'":o===4?b:o===3?"'"+b:o===2?'"'+b:"'''"+b;}
 function octLabel(oct,letters){const b=letters?'C':'1',o=+oct;return o===7?b+"'''":o===6?b+'"':o===5?b+"'":o===4?b:o===3?"'"+b:o===2?'"'+b:"'''"+b;}
@@ -844,7 +896,7 @@ notes,C/4,D/4,E/4,C/4,|,C/4,D/4,E/4,C/4,|,E/4,F/4,G/2,|,E/4,F/4,G/2,|,G/4,A/4,G/
 lyrics,Are,you,sleep,ing,|,Are,you,sleep,ing,|,Bro,ther,John,|,Bro,ther,John,|,Morn,ing,bells,are,ring,ing,|,Morn,ing,bells,are,ring,ing,|,Ding,ding,dong,|,Ding,ding,dong`
 };
 
-const S={octave:'4',letters:false,song:null,correct:0,total:0,skin:'candy',sound:'piano',volume:.80,oct3:false,instrument:'guitar'};
+const S={octave:'4',letters:false,song:null,correct:0,total:0,skin:'candy',sound:'piano',volume:.70,oct3:false,instrument:'guitar'};
 
 // ── Guitar constants ──────────────────────────────────────────────────────
 const GUITAR_TUNING=[64,59,55,50,45,40]; // MIDI: E4,B3,G3,D3,A2,E2 (str 0=high E)
@@ -870,11 +922,11 @@ function buildFretboard(){
   board.innerHTML='';
   const FRETS=GUITAR_MAX_FRET, STRINGS=6;
   // Grid: open-string col + FRETS cols, STRINGS rows + 1 label row
-  board.style.gridTemplateColumns=`96px repeat(${FRETS},1fr)`;
+  board.style.gridTemplateColumns=`116px repeat(${FRETS},1fr)`;
   board.style.gridTemplateRows=`repeat(${STRINGS},1fr) 18px`;
   // Note circle size via CSS vars — sized at build; ResizeObserver will update
   const bh=board.offsetHeight||200, bw=board.offsetWidth||400;
-  const cellH=bh/(STRINGS+1), cellW=(bw-96)/FRETS;
+  const cellH=bh/(STRINGS+1), cellW=(bw-116)/FRETS;
   const fnSize=Math.round(Math.min(cellH*0.70,cellW*0.65,44));
   const fnFs=Math.round(fnSize*0.95);
   board.style.setProperty('--fn-size',fnSize+'px');
@@ -884,7 +936,7 @@ function buildFretboard(){
     const strThick=Math.max(1,(0.9+s*0.45))+'px';
     for(let f=0;f<=FRETS;f++){
       const cell=document.createElement('div');
-      const inlayCls=(f===12&&s===1)?' fb-inlay-top':(f===12&&s===3)?' fb-inlay-bot':((f===3||f===5||f===7||f===9)&&s===2)?' fb-inlay':'';
+      const inlayCls=(f===12&&s===2)?' fb-inlay-top':(f===12&&s===3)?' fb-inlay-bot':((f===3||f===5||f===7||f===9)&&s===2)?' fb-inlay':'';
       cell.className='fb-cell'+(f===0?' fb-open':'')+inlayCls;
       cell.style.setProperty('--str-h',strThick);
       const midi=GUITAR_TUNING[s]+f;
@@ -947,12 +999,13 @@ function pressFret(str,fret){
   const tOct=String(Math.floor(tMidi/12)-1);
   S.total++;const hit=(name===tName&&oct===tOct);
   if(hit){
+    document.getElementById('app').classList.add('song-started');resetIdleTimer();
     S.correct++;const cell=document.getElementById('nc-'+S.song.pos);
     if(cell){cell.classList.add('correct-flash');setTimeout(()=>cell.classList.remove('correct-flash'),300);}
     S.song.advance();refreshNoteDisplay();highlightFretNote();highlightNext();
     if(S.song.done())setStatus('🎉 '+Math.round(S.correct/S.total*100)+'% — Complete!','done',5000);
     else setStatus('✓','ok',500);
-  }else{setStatus('Try again','bad',900);}
+  }else{setStatus('Try again','bad',900);blinkHint();}
   updateScore();
 }
 
@@ -1106,12 +1159,13 @@ function pressKey(name,oct){
   if(!note)return;
   S.total++;const hit=(name===note.name&&oct===note.octave);
   if(hit){
+    document.getElementById('app').classList.add('song-started');resetIdleTimer();
     S.correct++;const cell=document.getElementById('nc-'+S.song.pos);
     if(cell){cell.classList.add('correct-flash');setTimeout(()=>cell.classList.remove('correct-flash'),300);}
     S.song.advance();autoSwitchOctave();refreshNoteDisplay();highlightNext();
     if(S.song.done())setStatus('🎉 '+Math.round(S.correct/S.total*100)+'% — Complete!','done',5000);
     else setStatus('✓','ok',500);
-  }else{setStatus('Try again','bad',900);}
+  }else{setStatus('Try again','bad',900);blinkHint();}
   updateScore();
 }
 
@@ -1125,6 +1179,15 @@ function autoSwitchOctave(){
 const AUTO_BPM = 90;
 const _BEAT_MS = 60000 / AUTO_BPM; // ~667ms per quarter note
 let _autoIdx = 0;
+let _idleTimer = null;
+function blinkHint(){
+  const els=[document.querySelector('.wk.next .klbl.w'),document.querySelector('.bk.next .klbl.b'),document.querySelector('.fb-note.next')].filter(Boolean);
+  els.forEach(el=>{el.classList.remove('hint-blink');void el.offsetWidth;el.classList.add('hint-blink');el.addEventListener('animationend',()=>el.classList.remove('hint-blink'),{once:true});});
+}
+function resetIdleTimer(){
+  clearTimeout(_idleTimer);
+  _idleTimer=setTimeout(()=>{document.getElementById('app').classList.remove('song-started');},3000);
+}
 
 function _noteMs(note){ return _BEAT_MS * (4 / (note.dur || 4)); }
 
@@ -1174,9 +1237,15 @@ function loadSong(id){
   buildNoteDisplay();buildOctSel();updateKeyLabels();updateOctSelVisibility();updateScore();setStatus('');
   requestAnimationFrame(highlightNext);
 }
-function rewind(){stopAuto();if(S.song){S.song.rewind();_autoIdx=0;S.correct=0;S.total=0;autoSwitchOctave();refreshNoteDisplay();highlightNext();updateScore();setStatus('');}}
+function rewind(){stopAuto();clearTimeout(_idleTimer);document.getElementById('app').classList.remove('song-started');if(S.song){S.song.rewind();_autoIdx=0;S.correct=0;S.total=0;autoSwitchOctave();refreshNoteDisplay();highlightNext();updateScore();setStatus('');}}
 
-function setMode(m){S.letters=m==='abc';document.getElementById('btn-num').classList.toggle('on',!S.letters);document.getElementById('btn-abc').classList.toggle('on',S.letters);buildOctSel();updateKeyLabels();if(S.song)buildNoteDisplay();}
+function updateFretLabels(){
+  for(let s=0;s<6;s++)for(let f=0;f<=GUITAR_MAX_FRET;f++){
+    const el=document.getElementById(`fn-${s}-${f}`);
+    if(el)el.textContent=midiToLabel(GUITAR_TUNING[s]+f,S.letters);
+  }
+}
+function setMode(m){S.letters=m==='abc';document.getElementById('btn-num').classList.toggle('on',!S.letters);document.getElementById('btn-abc').classList.toggle('on',S.letters);buildOctSel();updateKeyLabels();if(S.song)buildNoteDisplay();if(S.instrument==='guitar')updateFretLabels();}
 
 function goFullscreen(){
   const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);

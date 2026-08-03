@@ -149,6 +149,38 @@ html,body {
   display:none;
 }
 #phrases-wrap.active { display:block; }
+/* Song complete overlay */
+#song-complete-overlay {
+  display:none; position:absolute; inset:0; z-index:30;
+  align-items:center; justify-content:center;
+}
+#song-complete-overlay.show { display:flex; }
+#sco-card {
+  background:rgba(15,14,12,0.55); border:1px solid rgba(255,255,255,0.12);
+  border-radius:20px; padding:28px 32px;
+  width:min(72%, 260px); aspect-ratio:1/1;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+}
+#sco-score {
+  font-size:clamp(48px,10vw,72px); font-weight:900; color:#fff; letter-spacing:-.02em;
+  text-shadow:0 0 40px rgba(255,255,255,0.35);
+}
+#sco-label {
+  font-size:13px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+  color:rgba(255,255,255,0.55); margin-top:-12px;
+}
+#sco-next-label {
+  font-size:11px; font-weight:600; letter-spacing:.10em; text-transform:uppercase;
+  color:#fff; display:none;
+}
+#sco-loading {
+  width:55%; height:5px; background:rgba(255,255,255,0.15); border-radius:3px;
+  overflow:hidden; display:none;
+}
+#sco-bar {
+  height:100%; width:0%; background:var(--accent); border-radius:3px;
+  transition:width 3s linear;
+}
 .phrase-row {
   position:absolute; left:0; top:0; width:100%; height:75%;
   display:flex; align-items:center; justify-content:center; gap:6px;
@@ -171,7 +203,7 @@ html,body {
 .note-cell.current  { opacity:1; }
 .note-cell.rest     { opacity:.10; }
 .note-bubble {
-  width:54px; height:54px; border-radius:50%;
+  width:34px; height:34px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
   border:2px solid var(--border); background:var(--surface-2);
   font-size:22px; font-weight:700; color:var(--sub);
@@ -529,6 +561,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <option value="old-macdonald">Old MacDonald</option>
         <option value="yankee-doodle">Yankee Doodle</option>
         <option value="are-you-sleeping">Are You Sleeping</option>
+        <option value="test-song">Test Song</option>
       </select>
       <div class="toggle">
         <button id="btn-num" class="on" onclick="setMode('num')">123</button>
@@ -554,6 +587,14 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
       <div class="status" id="status"></div>
       <div class="panel-empty" id="panel-empty">Select a song to begin</div>
       <div id="phrases-wrap"></div>
+      <div id="song-complete-overlay">
+        <div id="sco-card">
+          <div id="sco-score"></div>
+          <div id="sco-label">Accuracy</div>
+          <div id="sco-next-label">Up next…</div>
+          <div id="sco-loading"><div id="sco-bar"></div></div>
+        </div>
+      </div>
     </div>
 
 
@@ -970,7 +1011,11 @@ lyrics,Yan,kee,Doo,dle,went,to,town,|,Rid,ing,on,a,po,ny,|,Stuck,a,fea,ther,in,h
 'are-you-sleeping':`title,Are You Sleeping
 tempo,104
 notes,C/4,D/4,E/4,C/4,|,C/4,D/4,E/4,C/4,|,E/4,F/4,G/2,|,E/4,F/4,G/2,|,G/4,A/4,G/4,F/4,E/4,C/4,|,G/4,A/4,G/4,F/4,E/4,C/4,|,C/4,G/4,C/2,|,C/4,G/4,C/2
-lyrics,Are,you,sleep,ing,|,Are,you,sleep,ing,|,Bro,ther,John,|,Bro,ther,John,|,Morn,ing,bells,are,ring,ing,|,Morn,ing,bells,are,ring,ing,|,Ding,ding,dong,|,Ding,ding,dong`
+lyrics,Are,you,sleep,ing,|,Are,you,sleep,ing,|,Bro,ther,John,|,Bro,ther,John,|,Morn,ing,bells,are,ring,ing,|,Morn,ing,bells,are,ring,ing,|,Ding,ding,dong,|,Ding,ding,dong`,
+'test-song':`title,Test Song
+tempo,120
+notes,G/4
+lyrics,G`
 };
 
 const S={octave:'4',letters:false,song:null,correct:0,total:0,skin:'candy',sound:'piano',volume:.70,oct3:false,instrument:'guitar',fretDisplay:'song',fretStart:0,phraseIdx:0};
@@ -1092,13 +1137,9 @@ function highlightFretNote(){
   if(!n||n.isRest||n.isTied||n.isPhrase)return;
   const midi=guitarMidi(n.name,n.octave);
   const pos=GUITAR_POS_MAP[midi];
-  const curPos=S.song.pos;
   if(pos){
     const el=document.getElementById(`fn-${pos.str}-${pos.fret}`);
-    if(el){
-      el.classList.add('next');
-      if(curPos!==_lastPulsePos&&curPos>0){pulseEl(el);_lastPulsePos=curPos;}
-    }
+    if(el){el.classList.add('next');pulseEl(el);}
   }
   // peek: next note
   const p=nextPlayableNote(S.song.pos);
@@ -1131,8 +1172,8 @@ function pressFret(str,fret){
     document.getElementById('app').classList.add('song-started');resetIdleTimer();
     S.correct++;const cell=document.getElementById('nc-'+S.song.pos);
     if(cell){cell.classList.add('correct-flash');setTimeout(()=>cell.classList.remove('correct-flash'),300);}
-    S.song.advance();refreshNoteDisplay();highlightFretNote();highlightNext();
-    if(S.song.done())setStatus('🎉 '+Math.round(S.correct/S.total*100)+'% — Complete!','done',5000);
+    S.song.advance();refreshNoteDisplay();highlightNext();
+    if(S.song.done())onSongComplete();
     else setStatus('✓','ok',500);
   }else{setStatus('Try again','bad',900);blinkHint();}
   updateScore();
@@ -1381,7 +1422,7 @@ function pressKey(name,oct){
     S.correct++;const cell=document.getElementById('nc-'+S.song.pos);
     if(cell){cell.classList.add('correct-flash');setTimeout(()=>cell.classList.remove('correct-flash'),300);}
     S.song.advance();autoSwitchOctave();refreshNoteDisplay();highlightNext();
-    if(S.song.done())setStatus('🎉 '+Math.round(S.correct/S.total*100)+'% — Complete!','done',5000);
+    if(S.song.done())onSongComplete();
     else setStatus('✓','ok',500);
   }else{setStatus('Try again','bad',900);blinkHint();}
   updateScore();
@@ -1447,6 +1488,35 @@ function togglePlay(){
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+function getNextSongId(){
+  const sel=document.getElementById('song-sel');
+  const opts=Array.from(sel.options).filter(o=>o.value);
+  const curIdx=opts.findIndex(o=>o.value===sel.value);
+  return opts[(curIdx+1)%opts.length].value;
+}
+function onSongComplete(){
+  const pct=S.total?Math.round(S.correct/S.total*100):100;
+  const nextId=getNextSongId();
+  const nextTitle=document.querySelector(`#song-sel option[value="${nextId}"]`)?.textContent||'Next Song';
+  const overlay=document.getElementById('song-complete-overlay');
+  const scoreEl=document.getElementById('sco-score');
+  const nextLbl=document.getElementById('sco-next-label');
+  const loadingEl=document.getElementById('sco-loading');
+  const barEl=document.getElementById('sco-bar');
+  scoreEl.textContent=pct+'%';
+  nextLbl.textContent='Up next: '+nextTitle;
+  nextLbl.style.display='block';
+  loadingEl.style.display='block';
+  barEl.style.width='0%';
+  overlay.classList.add('show');
+  void barEl.offsetWidth;
+  barEl.style.width='100%';
+  setTimeout(()=>{
+    overlay.classList.remove('show');
+    document.getElementById('song-sel').value=nextId;
+    loadSong(nextId);
+  },3000);
+}
 function loadSong(id){
   stopAuto();
   document.getElementById('app').classList.remove('song-started');

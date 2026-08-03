@@ -342,6 +342,19 @@ html,body {
   40%,80% { opacity:1;    transform:scale(1.15); }
 }
 .hint-blink { animation:hint-blink 0.5s ease-in-out !important; }
+@keyframes key-arrive {
+  0%   { transform:scale(1.55); opacity:0.45; }
+  60%  { transform:scale(0.90); opacity:1; }
+  100% { transform:scale(1);    opacity:1; }
+}
+@keyframes bubble-arrive {
+  0%   { transform:scale(1.5); opacity:0.4; }
+  60%  { transform:scale(1.0); }
+  100% { transform:scale(1.12); }
+}
+.klbl.arrive        { animation:key-arrive    0.32s cubic-bezier(.15,.8,.3,1) forwards !important; }
+.note-bubble.arrive { animation:bubble-arrive 0.32s cubic-bezier(.15,.8,.3,1) forwards !important; }
+.fb-note.arrive     { animation:key-arrive    0.32s cubic-bezier(.15,.8,.3,1) forwards !important; }
 /* 3-octave mode */
 .hd-btn.on { background:var(--accent); color:#0F0E0C; }
 .vol-arrows {
@@ -1079,7 +1092,14 @@ function highlightFretNote(){
   if(!n||n.isRest||n.isTied||n.isPhrase)return;
   const midi=guitarMidi(n.name,n.octave);
   const pos=GUITAR_POS_MAP[midi];
-  if(pos){const el=document.getElementById(`fn-${pos.str}-${pos.fret}`);if(el)el.classList.add('next');}
+  const curPos=S.song.pos;
+  if(pos){
+    const el=document.getElementById(`fn-${pos.str}-${pos.fret}`);
+    if(el){
+      el.classList.add('next');
+      if(curPos!==_lastPulsePos&&curPos>0){pulseEl(el);_lastPulsePos=curPos;}
+    }
+  }
   // peek: next note
   const p=nextPlayableNote(S.song.pos);
   if(!p)return;
@@ -1131,7 +1151,7 @@ function switchInstrument(id){
   const instSel=document.getElementById('inst-sel');
   if(instSel&&instSel.value!==id)instSel.value=id;
   updateOctSelVisibility();
-  if(isGuitar){buildFretboard();}else{buildKeyboard();}
+  if(isGuitar){buildFretboard();}else{buildKeyboard();applyKeyImages(S.skin);}
   clearTimeout(_idleTimer);
   document.getElementById('app').classList.remove('song-started');
   autoSwitchOctave();
@@ -1208,11 +1228,18 @@ function highlightNext(){
   if(!S.song||S.song.done())return;
   const n=S.song.cur();
   if(!n||n.isRest||n.isTied)return;
+  const curPos=S.song.pos;
   if(S.oct3){
     document.querySelector(`[data-k="${n.name}"][data-oct="${n.octave}"]`)?.classList.add('next');
   } else {
     if(n.octave!==S.octave)return;
     document.querySelector(`[data-k="${n.name}"]`)?.classList.add('next');
+  }
+  // pulse key label only when note position advances (not on rebuild/rewind)
+  if(curPos!==_lastPulsePos&&curPos>0){
+    const klbl=document.querySelector('.wk.next .klbl')||document.querySelector('.bk.next .klbl');
+    pulseEl(klbl);
+    _lastPulsePos=curPos;
   }
   // peek: next note preview
   const p=nextPlayableNote(S.song.pos);
@@ -1226,6 +1253,14 @@ function highlightNext(){
     const el=document.querySelector(`[data-k="${p.name}"]`);
     if(el)el.classList.add('peek',...(sameNote?['peek-same']:[]));
   }
+}
+let _lastPulsePos=-1;
+function pulseEl(el){
+  if(!el)return;
+  el.classList.remove('arrive');
+  void el.offsetWidth;
+  el.classList.add('arrive');
+  el.addEventListener('animationend',()=>el.classList.remove('arrive'),{once:true});
 }
 function toggleOct3(){
   S.oct3=!S.oct3;
@@ -1323,7 +1358,7 @@ function refreshNoteDisplay(){
     if(!cell||!bub)return;
     if(note.isRest)cell.className='note-cell rest';
     else if(note._idx<pos)cell.className='note-cell played';
-    else if(note._idx===pos)cell.className='note-cell current';
+    else if(note._idx===pos){cell.className='note-cell current';if(pos>0)pulseEl(bub);}
     else cell.className='note-cell upcoming';
     bub.textContent=noteLabel(note,S.letters);
   });
@@ -1414,6 +1449,8 @@ function togglePlay(){
 
 function loadSong(id){
   stopAuto();
+  document.getElementById('app').classList.remove('song-started');
+  _lastPulsePos=-1;
   S.correct=0;S.total=0;
   if(!id||!SONGS[id]){S.song=null;S.phraseIdx=0;buildNoteDisplay();updateScore();updateOctSelVisibility();if(S.instrument==='guitar')updateFretLabels();highlightNext();setStatus('');return;}
   S.song=makeSong(SONGS[id]);
@@ -1423,7 +1460,7 @@ function loadSong(id){
   if(S.instrument==='guitar')updateFretLabels();
   requestAnimationFrame(highlightNext);
 }
-function rewind(){stopAuto();clearTimeout(_idleTimer);document.getElementById('app').classList.remove('song-started');if(S.song){S.song.rewind();_autoIdx=0;S.correct=0;S.total=0;S.phraseIdx=0;autoSwitchOctave();buildNoteDisplay();highlightNext();updateScore();setStatus('');}}
+function rewind(){stopAuto();clearTimeout(_idleTimer);_lastPulsePos=-1;document.getElementById('app').classList.remove('song-started');if(S.song){S.song.rewind();_autoIdx=0;S.correct=0;S.total=0;S.phraseIdx=0;autoSwitchOctave();buildNoteDisplay();highlightNext();updateScore();setStatus('');}}
 
 function updateFretLabels(){
   const start=S.fretStart, end=start+GUITAR_WINDOW;
@@ -1488,6 +1525,9 @@ document.addEventListener('keydown',e=>{
 document.getElementById('song-sel').addEventListener('change',e=>loadSong(e.target.value));
 document.getElementById('skin-sel').addEventListener('change',e=>applySkin(e.target.value));
 
+// Default to 3-octave on desktop, single octave on mobile/touch
+S.oct3 = !(navigator.maxTouchPoints > 0 || window.innerWidth < 768);
+document.getElementById('btn-oct3').classList.toggle('on', S.oct3);
 buildKeyboard();
 rebuildGuitarPosMap();
 updateFretToolbar();

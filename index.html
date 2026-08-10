@@ -248,7 +248,14 @@ html,body {
   flex:1; display:grid; grid-auto-flow:column; grid-template-columns:repeat(10,1fr);
   gap:2px 3px; align-items:center; justify-items:center;
   background:var(--surface); border:1px solid var(--case-bord); border-radius:6px;
-  padding:8px 6px; box-shadow:0 2px 8px rgba(0,0,0,.12);
+  padding:8px 6px 8px 22px; box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+/* Bend-depth legend, left of hole 1 — number of slashes = semitones bent for
+   that row, independent of which hole actually reaches it. */
+.harp-bend-legend {
+  position:absolute; left:2px; z-index:1; transform:translateY(-50%);
+  font-size:11px; font-weight:800; color:var(--sub);
+  line-height:1; pointer-events:none;
 }
 /* A single dark rounded bar spans the full hole-number row (the harmonica's
    number "plate"), with narrower individual rounded boxes on the natural
@@ -266,7 +273,7 @@ html,body {
    hollow (no fill) so they read as a secondary tier, not the solid number plate. */
 .harp-line-bar {
   position:absolute; left:6px; right:6px; z-index:0;
-  background:transparent; border:1.5px solid #000;
+  background:#1A1814; border:1.5px solid #000;
   pointer-events:none;
 }
 /* Hard corners where each outline bar meets the solid number plate; rounded
@@ -284,7 +291,7 @@ html,body {
   position:static; background:transparent; border:none; box-shadow:none;
 }
 .fb-note.harp-note:not(.harp-alt) {
-  position:relative; z-index:1; color:var(--text);
+  position:relative; z-index:1; color:#F5F0E6;
   width:calc(var(--fn-size,30px) * 0.85); height:calc(var(--fn-size,30px) * 0.85);
 }
 .fb-note.harp-note.harp-alt {
@@ -1354,6 +1361,24 @@ function buildHarmonica(){
     addHarpBar('harp-line-bar harp-line-bar-top',firstBlow,hEdges);
     addHarpBar('harp-line-bar harp-line-bar-bot',document.getElementById(harpNoteId(0,'draw',0)),hEdges);
   }
+  // Bend-depth legend, left of hole 1 — row 1 (bottom) through row 8 (top):
+  // 3 slashes / 2 / 1 / (nat) / (num) / (nat) / 1 / 2. Hole 3 is the only hole
+  // that reaches the deepest draw bend (row 1) and hole 10 the deepest blow
+  // bend (row 8), so they're used as the vertical reference for every row —
+  // any hole works since a grid row's height is uniform across all columns.
+  const addHarpLegend=(text,refEl)=>{
+    if(!refEl)return;
+    const lbl=document.createElement('div');
+    lbl.className='harp-bend-legend';
+    lbl.textContent=text;
+    lbl.style.top=(refEl.offsetTop+refEl.offsetHeight/2)+'px';
+    board.appendChild(lbl);
+  };
+  addHarpLegend('//', document.getElementById(harpNoteId(9,'blow',2)));
+  addHarpLegend('/',  document.getElementById(harpNoteId(9,'blow',1)));
+  addHarpLegend('///',document.getElementById(harpNoteId(2,'draw',3)));
+  addHarpLegend('//', document.getElementById(harpNoteId(2,'draw',2)));
+  addHarpLegend('/',  document.getElementById(harpNoteId(2,'draw',1)));
 }
 function updateHarpLabels(){
   for(let h=0;h<10;h++){

@@ -261,6 +261,14 @@ html,body {
   background:#2A2822; border:1.5px solid #55503F; border-radius:9px;
   pointer-events:none;
 }
+/* Outline-only bars framing the natural blow/draw row directly above/below the
+   hole-number bar — same continuous full-width treatment as .harp-num-bar, but
+   hollow (no fill) so they read as a secondary tier, not the solid number plate. */
+.harp-line-bar {
+  position:absolute; left:6px; right:6px; z-index:0;
+  background:transparent; border:1.5px solid #000; border-radius:9px;
+  pointer-events:none;
+}
 .harp-hole-num {
   position:relative; z-index:1; height:18px;
   font-size:11px; font-weight:800; color:#F5F0E6;
@@ -270,7 +278,7 @@ html,body {
   position:static; background:transparent; border:none; box-shadow:none;
 }
 .fb-note.harp-note:not(.harp-alt) {
-  background:#2A2822; border:1.5px solid #55503F; border-radius:6px; color:#F5F0E6;
+  position:relative; z-index:1; color:var(--text);
   width:calc(var(--fn-size,30px) * 0.85); height:calc(var(--fn-size,30px) * 0.85);
 }
 .fb-note.harp-note.harp-alt {
@@ -1302,8 +1310,9 @@ function buildHarmonica(){
       board.appendChild(draw[i]?makeHarpNote(h,'draw',i,draw[i]):document.createElement('div'));
     }
   }
-  // Position the number-row backdrop bar to match the actual rendered row —
-  // absolute (not a grid item) so it can't disturb the note cells' auto-placement.
+  // Position the number-row backdrop bar, plus the two natural-note outline bars
+  // directly above/below it, to match the actual rendered rows — absolute (not
+  // grid items) so they can't disturb the note cells' auto-placement.
   const firstNum=board.querySelector('.harp-hole-num');
   if(firstNum){
     const numBar=document.createElement('div');
@@ -1311,6 +1320,22 @@ function buildHarmonica(){
     numBar.style.top=firstNum.offsetTop+'px';
     numBar.style.height=firstNum.offsetHeight+'px';
     board.insertBefore(numBar,board.firstChild);
+  }
+  const blowNat=document.getElementById(harpNoteId(0,'blow',0));
+  if(blowNat){
+    const bar=document.createElement('div');
+    bar.className='harp-line-bar';
+    bar.style.top=blowNat.offsetTop+'px';
+    bar.style.height=blowNat.offsetHeight+'px';
+    board.insertBefore(bar,board.firstChild);
+  }
+  const drawNat=document.getElementById(harpNoteId(0,'draw',0));
+  if(drawNat){
+    const bar=document.createElement('div');
+    bar.className='harp-line-bar';
+    bar.style.top=drawNat.offsetTop+'px';
+    bar.style.height=drawNat.offsetHeight+'px';
+    board.insertBefore(bar,board.firstChild);
   }
   highlightHarpNote();
 }

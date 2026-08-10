@@ -239,7 +239,7 @@ html,body {
 #guitar-wrap { display:none; flex-direction:column; width:100%; height:100%; }
 .guitar-mode #guitar-wrap { display:flex; }
 /* Harmonica */
-#harmonica-wrap { display:none; flex-direction:column; width:100%; height:100%; padding:8px 10px; }
+#harmonica-wrap { display:none; flex-direction:column; width:100%; max-width:640px; height:100%; padding:8px 10px; margin:0 auto; }
 .harmonica-mode #harmonica-wrap { display:flex; }
 .harmonica-mode .bot { flex:0 0 50vh; min-height:220px; padding:8px 10px; }
 .harmonica-mode .top { flex:1; border-bottom:1px solid var(--border); }
@@ -1293,7 +1293,7 @@ function buildHarmonica(){
   const totalRows=HARP_MAX_ABOVE+HARP_MAX_BELOW+1;
   const bh=board.offsetHeight||260, bw=board.offsetWidth||400;
   const fnSize=Math.round(Math.min(bw/10*0.62,bh/totalRows*0.78,40));
-  const fnFs=Math.round(fnSize*0.42);
+  const fnFs=Math.round(fnSize*0.52);
   board.style.setProperty('--fn-size',fnSize+'px');
   board.style.setProperty('--fn-fs',fnFs+'px');
   for(let h=0;h<10;h++){

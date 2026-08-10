@@ -249,17 +249,22 @@ html,body {
   background:var(--surface); border:1px solid var(--case-bord); border-radius:6px;
   padding:8px 6px; box-shadow:0 2px 8px rgba(0,0,0,.12);
 }
+/* Dark boxes on the hole-number row + the natural blow/draw row sketch the
+   silhouette of a harmonica from the front: a wide number "plate" in the middle
+   with narrower rounded hole openings directly above and below it. Bend/overblow
+   notes (harp-alt) stay boxless, sitting plainly on the board — secondary/advanced. */
 .harp-hole-num {
-  font-size:11px; font-weight:800; color:var(--sub);
-  border:1px solid var(--border); border-radius:4px; width:20px; height:16px;
+  font-size:11px; font-weight:800; color:#F5F0E6;
+  background:#2A2822; border:1.5px solid #55503F; border-radius:6px;
+  width:calc(var(--fn-size,30px) * 0.85 + 10px); height:18px;
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
-/* Natural notes use --text (not --wk-lbl) — --text is already tuned per-skin for
-   contrast against --surface everywhere else in the UI, whereas --wk-lbl is tuned
-   for text on light ivory piano keys and goes low-contrast on darker skins (e.g.
-   Christmas: dark red on dark green measured at 1.01:1, essentially invisible). */
 .fb-note.harp-note {
-  position:static; color:var(--text); background:transparent; border:none; box-shadow:none;
+  position:static; background:transparent; border:none; box-shadow:none;
+}
+.fb-note.harp-note:not(.harp-alt) {
+  background:#2A2822; border:1.5px solid #55503F; border-radius:6px; color:#F5F0E6;
+  width:calc(var(--fn-size,30px) * 0.85); height:calc(var(--fn-size,30px) * 0.85);
 }
 .fb-note.harp-note.harp-alt {
   width:calc(var(--fn-size,30px) * 0.72); height:calc(var(--fn-size,30px) * 0.72);
@@ -268,9 +273,13 @@ html,body {
 }
 /* !important on background: the next-note state must always render solid white,
    with no risk of losing to .peek's translucent white or .harp-alt's smaller/dimmer
-   styling regardless of class-combination or animation-swap edge cases. */
-.fb-note.harp-note.next { background:#fff !important; color:#111; border-color:transparent; box-shadow:none; }
-.fb-note.harp-note.peek { background:rgba(255,255,255,0.18); color:rgba(0,0,0,0.55); border-color:transparent; }
+   styling regardless of class-combination or animation-swap edge cases. Shape/size
+   reset to a full circle here too, since the idle rule above claims equal specificity. */
+.fb-note.harp-note.next {
+  background:#fff !important; color:#111; border-color:transparent; box-shadow:none;
+  border-radius:50%; width:calc(var(--fn-size,30px) * 1.35); height:calc(var(--fn-size,30px) * 1.35);
+}
+.fb-note.harp-note.peek { background:rgba(255,255,255,0.18); color:rgba(0,0,0,0.55); border-color:transparent; border-radius:50%; }
 .fb-note.harp-note.fb-pressed { background:var(--accent-dim); border-color:transparent; }
 /* Keep the next-note pulse going on harmonica even after the song has started
    or auto-play is running — the denser bend/overblow grid needs the continuous

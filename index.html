@@ -243,28 +243,28 @@ html,body {
 .harmonica-mode #harmonica-wrap { display:flex; }
 .harmonica-mode .bot { flex:0 0 50vh; min-height:220px; padding:8px 10px; }
 .harmonica-mode .top { flex:1; border-bottom:1px solid var(--border); }
-/* Fixed (non-skin-tinted) dark panel, matching the guitar fretboard's own fixed
-   wood-toned background — the piano-key label colors (--wk-lbl/--sub) are tuned
-   for text on light ivory keys and go low-contrast (even red-on-green under the
-   Christmas skin) when reused on a dark surface, so harmonica gets its own palette. */
 #harp-board {
   flex:1; display:grid; grid-auto-flow:column; grid-template-columns:repeat(10,1fr);
   gap:2px 3px; align-items:center; justify-items:center;
-  background:#3A3630; border:1px solid #22201C; border-radius:6px;
+  background:var(--surface); border:1px solid var(--case-bord); border-radius:6px;
   padding:8px 6px; box-shadow:0 2px 8px rgba(0,0,0,.12);
 }
 .harp-hole-num {
-  font-size:11px; font-weight:800; color:#C8C0B0;
-  border:1px solid #5A5650; border-radius:4px; width:20px; height:16px;
+  font-size:11px; font-weight:800; color:var(--sub);
+  border:1px solid var(--border); border-radius:4px; width:20px; height:16px;
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
+/* Natural notes use --text (not --wk-lbl) — --text is already tuned per-skin for
+   contrast against --surface everywhere else in the UI, whereas --wk-lbl is tuned
+   for text on light ivory piano keys and goes low-contrast on darker skins (e.g.
+   Christmas: dark red on dark green measured at 1.01:1, essentially invisible). */
 .fb-note.harp-note {
-  position:static; color:#F5F0E6; background:transparent; border:none; box-shadow:none;
+  position:static; color:var(--text); background:transparent; border:none; box-shadow:none;
 }
 .fb-note.harp-note.harp-alt {
   width:calc(var(--fn-size,30px) * 0.72); height:calc(var(--fn-size,30px) * 0.72);
   font-size:calc(var(--fn-fs,12px) * 0.85);
-  color:#B8B0A0;
+  color:var(--sub);
 }
 /* !important on background: the next-note state must always render solid white,
    with no risk of losing to .peek's translucent white or .harp-alt's smaller/dimmer

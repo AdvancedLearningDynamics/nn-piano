@@ -266,12 +266,18 @@ html,body {
    hollow (no fill) so they read as a secondary tier, not the solid number plate. */
 .harp-line-bar {
   position:absolute; left:6px; right:6px; z-index:0;
-  background:transparent; border:1.5px solid #000; border-radius:9px;
+  background:transparent; border:1.5px solid #000;
   pointer-events:none;
 }
+/* Hard corners where each outline bar meets the solid number plate; rounded
+   only on the outer edge — top bar rounds up top, bottom bar rounds down. */
+.harp-line-bar-top { border-radius:9px 9px 0 0; }
+.harp-line-bar-bot { border-radius:0 0 9px 9px; }
 .harp-hole-num {
   position:relative; z-index:1; height:18px;
+  width:calc(var(--fn-size,30px) * 0.72);
   font-size:11px; font-weight:800; color:#F5F0E6;
+  background:transparent; border:1px solid rgba(255,255,255,0.85); border-radius:5px;
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
 .fb-note.harp-note {
@@ -1345,8 +1351,8 @@ function buildHarmonica(){
       left:firstBlow.offsetLeft-hPad,
       right:board.clientWidth-(lastBlow.offsetLeft+lastBlow.offsetWidth)-hPad,
     };
-    addHarpBar('harp-line-bar',firstBlow,hEdges);
-    addHarpBar('harp-line-bar',document.getElementById(harpNoteId(0,'draw',0)),hEdges);
+    addHarpBar('harp-line-bar harp-line-bar-top',firstBlow,hEdges);
+    addHarpBar('harp-line-bar harp-line-bar-bot',document.getElementById(harpNoteId(0,'draw',0)),hEdges);
   }
 }
 function updateHarpLabels(){

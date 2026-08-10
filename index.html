@@ -1323,17 +1323,31 @@ function buildHarmonica(){
   // vertical mid-point, so the row sits centred in visible black/outlined area
   // rather than being tightly hugged by it.
   const vPad=Math.max(4,Math.round(fnSize*0.20));
-  const addHarpBar=(cls,refEl)=>{
+  const addHarpBar=(cls,refEl,hEdges)=>{
     if(!refEl)return;
     const bar=document.createElement('div');
     bar.className=cls;
     bar.style.top=(refEl.offsetTop-vPad)+'px';
     bar.style.height=(refEl.offsetHeight+vPad*2)+'px';
+    if(hEdges){ bar.style.left=hEdges.left+'px'; bar.style.right=hEdges.right+'px'; }
     board.insertBefore(bar,board.firstChild);
   };
   addHarpBar('harp-num-bar',board.querySelector('.harp-hole-num'));
-  addHarpBar('harp-line-bar',document.getElementById(harpNoteId(0,'blow',0)));
-  addHarpBar('harp-line-bar',document.getElementById(harpNoteId(0,'draw',0)));
+  // The above/below bars are narrower than the hole-number bar — inset just
+  // past the hole-1/hole-10 note circles (measured, not a fixed %, so it stays
+  // correct at any board width) rather than the num-bar's near-full-width span.
+  // Leaves the middle rectangle widest, closer to a harmonica's front silhouette.
+  const firstBlow=document.getElementById(harpNoteId(0,'blow',0));
+  const lastBlow=document.getElementById(harpNoteId(9,'blow',0));
+  if(firstBlow&&lastBlow){
+    const hPad=Math.max(4,Math.round(fnSize*0.25));
+    const hEdges={
+      left:firstBlow.offsetLeft-hPad,
+      right:board.clientWidth-(lastBlow.offsetLeft+lastBlow.offsetWidth)-hPad,
+    };
+    addHarpBar('harp-line-bar',firstBlow,hEdges);
+    addHarpBar('harp-line-bar',document.getElementById(harpNoteId(0,'draw',0)),hEdges);
+  }
 }
 function updateHarpLabels(){
   for(let h=0;h<10;h++){

@@ -244,19 +244,26 @@ html,body {
 .harmonica-mode .bot { flex:0 0 50vh; min-height:220px; padding:8px 10px; }
 .harmonica-mode .top { flex:1; border-bottom:1px solid var(--border); }
 #harp-board {
+  position:relative;
   flex:1; display:grid; grid-auto-flow:column; grid-template-columns:repeat(10,1fr);
   gap:2px 3px; align-items:center; justify-items:center;
   background:var(--surface); border:1px solid var(--case-bord); border-radius:6px;
   padding:8px 6px; box-shadow:0 2px 8px rgba(0,0,0,.12);
 }
-/* Dark boxes on the hole-number row + the natural blow/draw row sketch the
-   silhouette of a harmonica from the front: a wide number "plate" in the middle
-   with narrower rounded hole openings directly above and below it. Bend/overblow
-   notes (harp-alt) stay boxless, sitting plainly on the board — secondary/advanced. */
+/* A single dark rounded bar spans the full hole-number row (the harmonica's
+   number "plate"), with narrower individual rounded boxes on the natural
+   blow/draw row directly above and below each hole — sketching the silhouette
+   of a harmonica from the front. Bend/overblow notes (harp-alt) stay boxless,
+   sitting plainly on the board — secondary/advanced. Positioned absolutely
+   (not as a grid item) so it can't disturb the sibling cells' auto-placement. */
+.harp-num-bar {
+  position:absolute; left:6px; right:6px; z-index:0;
+  background:#2A2822; border:1.5px solid #55503F; border-radius:9px;
+  pointer-events:none;
+}
 .harp-hole-num {
+  position:relative; z-index:1; height:18px;
   font-size:11px; font-weight:800; color:#F5F0E6;
-  background:#2A2822; border:1.5px solid #55503F; border-radius:6px;
-  width:calc(var(--fn-size,30px) * 0.85 + 10px); height:18px;
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
 .fb-note.harp-note {
@@ -1294,6 +1301,16 @@ function buildHarmonica(){
     for(let i=0;i<HARP_MAX_BELOW;i++){
       board.appendChild(draw[i]?makeHarpNote(h,'draw',i,draw[i]):document.createElement('div'));
     }
+  }
+  // Position the number-row backdrop bar to match the actual rendered row —
+  // absolute (not a grid item) so it can't disturb the note cells' auto-placement.
+  const firstNum=board.querySelector('.harp-hole-num');
+  if(firstNum){
+    const numBar=document.createElement('div');
+    numBar.className='harp-num-bar';
+    numBar.style.top=firstNum.offsetTop+'px';
+    numBar.style.height=firstNum.offsetHeight+'px';
+    board.insertBefore(numBar,board.firstChild);
   }
   highlightHarpNote();
 }

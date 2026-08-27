@@ -245,7 +245,7 @@ html,body {
 #guitar-wrap { display:none; flex-direction:column; width:100%; height:100%; }
 .guitar-mode #guitar-wrap { display:flex; }
 /* Harmonica */
-#harmonica-wrap { display:none; flex-direction:column; width:100%; max-width:780px; height:100%; padding:8px 10px; margin:0 auto; }
+#harmonica-wrap { display:none; flex-direction:column; width:100%; max-width:900px; height:100%; padding:8px 10px; margin:0 auto; }
 .harmonica-mode #harmonica-wrap { display:flex; }
 .harmonica-mode .bot { flex:0 0 50vh; min-height:220px; padding:8px 10px; }
 .harmonica-mode .top { flex:1; border-bottom:1px solid var(--border); }
@@ -259,8 +259,8 @@ html,body {
 /* Bend-depth legend, left of hole 1 — number of slashes = semitones bent for
    that row, independent of which hole actually reaches it. */
 .harp-bend-legend {
-  position:absolute; left:2px; z-index:1; transform:translateY(-50%);
-  font-size:11px; font-weight:800; color:var(--sub);
+  position:absolute; left:8px; z-index:1; transform:translateY(-50%);
+  font-size:16px; font-weight:800; color:var(--text);
   line-height:1; pointer-events:none;
 }
 /* A single dark rounded bar spans the full hole-number row (the harmonica's
@@ -272,7 +272,7 @@ html,body {
 .harp-num-bar {
   position:absolute; left:6px; right:6px; z-index:0;
   background:linear-gradient(180deg,#E4E4E8 0%,#B8B8C0 50%,#D2D2D8 100%);
-  border:1.5px solid #B8863E; border-radius:9px;
+  border:2.5px solid #B8863E; border-radius:9px;
   pointer-events:none;
 }
 /* Outline-only bars framing the natural blow/draw row directly above/below the

@@ -418,8 +418,6 @@ html,body {
   box-shadow:2px 6px 12px rgba(0,0,0,.5) !important;
   z-index:4 !important;
 }
-[data-k="CsDf"]{left:10.3%;} [data-k="DsEf"]{left:24.5%;}
-[data-k="FsGf"]{left:53.2%;} [data-k="GsAf"]{left:67.4%;} [data-k="AsBf"]{left:81.7%;}
 
 .klbl   { font-family:var(--font); font-weight:700; pointer-events:none; line-height:1; text-align:center; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; transition:background .15s, box-shadow .15s; }
 .klbl.w { font-size:var(--key-font-wk,clamp(32px,7vh,48px)); color:var(--wk-lbl); font-weight:800; width:1.55em; height:1.55em; }
@@ -1508,8 +1506,7 @@ function buildKeyboard(){
       });
       KEY_NAMES.filter(n=>BLACK.has(n)).forEach(name=>{
         const d=document.createElement('div');d.className='bk';d.dataset.k=name;d.dataset.oct=oct;
-        const cx=(oi*7+BK_WK_IDX[name])/N*100;
-        d.style.left=(cx-bkW/2)+'%';d.style.width=bkW+'%';
+        d.style.width=bkW+'%';
         const l=document.createElement('span');l.className='klbl b';l.id=`kl-${name}-${oct}`;d.appendChild(l);
         d.addEventListener('mousedown',e=>{e.preventDefault();pressKey(name,oct);});
         d.addEventListener('touchstart',e=>{e.preventDefault();pressKey(name,oct);},{passive:false});
@@ -1533,6 +1530,30 @@ function buildKeyboard(){
     });
   }
   updateKeyLabels();
+  positionBlackKeys();
+}
+// Black key `left` is measured off the actual rendered white keys instead of a
+// fixed percentage: the single-octave row has a 2px flex gap between white
+// keys, a fixed length that doesn't scale with a percentage-based `left`, so
+// any hardcoded percentage is only correct at the one width it was tuned for
+// and drifts out of alignment at every other width (including on resize).
+// Measuring live geometry keeps the black keys centred on the gap between
+// their two neighboring white keys at any container size.
+function positionBlackKeys(){
+  const wc=document.getElementById('wkeys'),bc=document.getElementById('bkeys');
+  const kbW=document.getElementById('keyboard').offsetWidth;
+  if(!wc||!bc||!kbW)return;
+  const wkEls=[...wc.children];
+  const octIdx={'3':0,'4':1,'5':2};
+  bc.querySelectorAll('.bk').forEach(bk=>{
+    const leftIdx=Math.floor(BK_WK_IDX[bk.dataset.k]);
+    const base=S.oct3?(octIdx[bk.dataset.oct]||0)*7:0;
+    const leftEl=wkEls[base+leftIdx],rightEl=wkEls[base+leftIdx+1];
+    if(!leftEl||!rightEl)return;
+    const centerPx=(leftEl.offsetLeft+leftEl.offsetWidth+rightEl.offsetLeft)/2;
+    const widthPx=bk.offsetWidth;
+    bk.style.left=((centerPx-widthPx/2)/kbW*100)+'%';
+  });
 }
 function updateKeyLabels(){
   if(S.oct3){
@@ -1911,7 +1932,7 @@ document.getElementById('inst-sel').value='piano';
     document.documentElement.style.setProperty('--wk-label-pad',Math.max(4,Math.round(kh*0.19-wf*0.5))+'px');
   }
   updateKeyFont();
-  new ResizeObserver(updateKeyFont).observe(document.getElementById('wkeys'));
+  new ResizeObserver(()=>{updateKeyFont();positionBlackKeys();}).observe(document.getElementById('wkeys'));
   // Rebuild fretboard circles when container resizes
   new ResizeObserver(()=>{if(STRING_INST[S.instrument])buildFretboard();}).observe(document.getElementById('fretboard'));
   // Rebuild harmonica circles when container resizes

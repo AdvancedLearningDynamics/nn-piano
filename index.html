@@ -486,17 +486,16 @@ html,body {
   position:fixed; z-index:200; pointer-events:none;
   font-weight:800; color:#000;
   text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff,0 1px 3px rgba(0,0,0,.35);
-  animation:note-float 1.1s ease-out forwards;
+  animation:note-float 1.1s linear forwards;
   will-change:transform,opacity;
 }
-/* Rise and fade run on different clocks: the upward motion is front-loaded
-   (nearly done by 30%) for a quick launch, while opacity holds at full
-   until 30% and then fades gradually across the rest of the duration for a
-   slower, lingering fade-out. */
+/* Constant-velocity rise for the whole duration (linear, not ease-out —
+   ease-out decelerates, which reads as stalling partway up) with opacity
+   fading continuously across that same span, so the fade tracks the rise
+   the whole way instead of holding then dropping. */
 @keyframes note-float {
-  0%   { transform:translate(-50%,-50%) translate(0,0) scale(0.85); opacity:1; }
-  30%  { transform:translate(-50%,-50%) translate(var(--dx,0px),-68px) scale(1.15); opacity:1; }
-  100% { transform:translate(-50%,-50%) translate(var(--dx,0px),-84px) scale(1.25); opacity:0; }
+  0%   { transform:translate(-50%,-50%) translate(0,0) scale(0.9); opacity:1; }
+  100% { transform:translate(-50%,-50%) translate(var(--dx,0px),-120px) scale(1.2); opacity:0; }
 }
 /* 3-octave mode */
 .hd-btn.on { background:var(--accent); color:#0F0E0C; }

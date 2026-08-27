@@ -574,8 +574,10 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
   height:var(--str-h,1px); background:rgba(215,195,145,0.80); z-index:1; pointer-events:none;
   box-shadow:0 1.5px 2px rgba(0,0,0,0.40);
 }
-/* Open-string column — dark headstock side, right edge = nut */
-.fb-cell.fb-open { border-right:6px solid #E8E0C8; background:transparent; }
+/* Open-string column — darkened headstock side, right edge = nut. Overlaid
+   on top of the shared wood-grain #fretboard background (not a flat color)
+   so it still reads as the same fretboard material, just shaded darker. */
+.fb-cell.fb-open { border-right:6px solid #E8E0C8; background:rgba(0,0,0,0.28); }
 /* String line extends through the full 6px nut and 2px into fret 1 */
 .fb-cell.fb-open::before { right:-8px; }
 /* Fret wires — left border on non-open cols */
@@ -1190,12 +1192,13 @@ function buildFretboard(){
   board.innerHTML='';
   const start=S.fretStart, end=start+GUITAR_WINDOW, STRINGS=cfg.count;
   const showOpen=start===0;
-  // Grid: optional open-string col + GUITAR_WINDOW fret cols, STRINGS rows + 1 label row
-  const openColW=showOpen?'100px':'';
+  // Grid: optional open-string (nut) col + GUITAR_WINDOW fret cols, STRINGS rows + 1 label row
+  const OPEN_COL_W=140;
+  const openColW=showOpen?OPEN_COL_W+'px':'';
   board.style.gridTemplateColumns=showOpen?`${openColW} repeat(${GUITAR_WINDOW},1fr)`:`repeat(${GUITAR_WINDOW},1fr)`;
   board.style.gridTemplateRows=`repeat(${STRINGS},1fr) 18px`;
   const bh=board.offsetHeight||200, bw=board.offsetWidth||400;
-  const usedW=showOpen?bw-100:bw;
+  const usedW=showOpen?bw-OPEN_COL_W:bw;
   const cellH=bh/(STRINGS+1), cellW=usedW/GUITAR_WINDOW;
   const fnSize=Math.round(Math.min(cellH*0.70,cellW*0.65,44));
   const fnFs=Math.round(fnSize*0.95);

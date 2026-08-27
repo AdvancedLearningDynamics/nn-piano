@@ -217,11 +217,16 @@ html,body {
 }
 .note-cell.correct-flash .note-bubble { background:var(--ok); border-color:var(--ok); color:#fff; }
 .note-lyric {
-  font-size:28px; font-weight:800; color:var(--text); text-align:center;
-  max-width:68px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-size:34px; font-weight:800; color:var(--text); text-align:center;
+  max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;
 }
 .note-cell.current .note-lyric { color:var(--text); }
+/* Neon Tech's white lyric outline is nearly invisible against its own light
+   text/background colors — swap to a black outline on this skin only. */
+[data-skin="tech"] .note-lyric {
+  text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;
+}
 
 
 .status { position:absolute; top:4px; left:50%; transform:translateX(-50%); font-size:9px; font-weight:700; color:var(--sub); z-index:5; pointer-events:none; transition:color .15s; white-space:nowrap; }
@@ -266,7 +271,8 @@ html,body {
    (not as a grid item) so it can't disturb the sibling cells' auto-placement. */
 .harp-num-bar {
   position:absolute; left:6px; right:6px; z-index:0;
-  background:#2A2822; border:1.5px solid #55503F; border-radius:9px;
+  background:linear-gradient(180deg,#E4E4E8 0%,#B8B8C0 50%,#D2D2D8 100%);
+  border:1.5px solid #B8863E; border-radius:9px;
   pointer-events:none;
 }
 /* Outline-only bars framing the natural blow/draw row directly above/below the
@@ -282,10 +288,10 @@ html,body {
 .harp-line-bar-top { border-radius:9px 9px 0 0; }
 .harp-line-bar-bot { border-radius:0 0 9px 9px; }
 .harp-hole-num {
-  position:relative; z-index:1; height:18px;
-  width:calc(var(--fn-size,30px) * 0.72);
-  font-size:11px; font-weight:800; color:#F5F0E6;
-  background:transparent; border:1px solid rgba(255,255,255,0.85); border-radius:5px;
+  position:relative; z-index:1; height:28px;
+  justify-self:stretch; width:auto; margin:0 1px;
+  font-size:17px; font-weight:800; color:#2A2822;
+  background:transparent; border:1px solid rgba(42,40,34,0.55); border-radius:5px;
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
 .fb-note.harp-note {

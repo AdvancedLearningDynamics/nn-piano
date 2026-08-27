@@ -1089,7 +1089,7 @@ const STRING_INST={
   guitar:{tuning:GUITAR_TUNING,names:GUITAR_STR_NAMES,count:6,transpose:-12},
   bass:  {tuning:BASS_TUNING,  names:BASS_STR_NAMES,  count:4,transpose:-24},
 };
-const GUITAR_WINDOW=7;   // frets visible at once
+const GUITAR_WINDOW=12;  // frets visible at once
 const GUITAR_ABS_MAX=12; // furthest fretStart allowed
 let GUITAR_POS_MAP={};
 function rebuildGuitarPosMap(){
@@ -1098,20 +1098,23 @@ function rebuildGuitarPosMap(){
   for(let s=0;s<cfg.count;s++)for(let f=start;f<=end;f++){const midi=cfg.tuning[s]+f;if(!(midi in m))m[midi]={str:s,fret:f};}
   GUITAR_POS_MAP=m;
 }
-// Auto-pick a fretStart that fits the whole loaded song inside one 7-fret
-// window (no open-position bonus slot, since the goal is a single fixed hand
-// position) so the player never has to touch the fret-range arrows. A note
-// can land on any string, not just one — e.g. on bass every string is a
-// perfect 4th apart, so the same pitch re-appears 5 frets higher on the next
-// string, and that's usually what lets a wide-open-position song (like an
-// octave-spanning melody) collapse into a single higher-up window.
+// Auto-pick a fretStart that fits the whole loaded song inside one fretted
+// window so the player never has to touch the fret-range arrows. Strongly
+// prefers keeping the nut/open strings visible (fretStart=0) — that's the
+// beginner-friendly home position — and only slides up the neck when a song
+// genuinely doesn't fit from open. A note can land on any string, not just
+// one — e.g. on bass every string is a perfect 4th apart, so the same pitch
+// re-appears 5 frets higher on the next string, which is what lets a
+// wide-range song collapse into a single window at all.
 function autoFretStart(){
   const cfg=STRING_INST[S.instrument];
   if(!cfg||!S.song)return;
   const midis=[...getSongMidis()];
   if(!midis.length)return;
-  const win=GUITAR_WINDOW-1; // 6 — matches the actual rendered span once fretStart>0
-  const maxFret=GUITAR_ABS_MAX+win;
+  // fretStart=0 gets a bonus 13th slot from the open string (matches buildFretboard's
+  // showOpen/fretEnd logic: end=GUITAR_WINDOW there, vs start+GUITAR_WINDOW-1 elsewhere).
+  const windowEnd=start=>start===0?GUITAR_WINDOW:start+GUITAR_WINDOW-1;
+  const maxFret=windowEnd(GUITAR_ABS_MAX);
   const options=midis.map(midi=>{
     const opts=[];
     for(let s=0;s<cfg.count;s++){const f=midi-cfg.tuning[s];if(f>=0&&f<=maxFret)opts.push(f);}
@@ -1120,11 +1123,11 @@ function autoFretStart(){
   if(options.some(o=>o.length===0))return; // a note is unplayable outright — leave fretStart alone
   const validStarts=[];
   for(let start=0;start<=GUITAR_ABS_MAX;start++){
-    const end=start+win;
+    const end=windowEnd(start);
     if(options.every(opts=>opts.some(f=>f>=start&&f<=end)))validStarts.push(start);
   }
   if(!validStarts.length)return; // song doesn't fit in any single window — arrows still work as a fallback
-  S.fretStart=validStarts[Math.floor(validStarts.length/2)];
+  S.fretStart=validStarts[0];
 }
 function noteToMidi(name,oct){return(parseInt(oct)+1)*12+KEY_NAMES.indexOf(name);}
 function midiToLabel(midi,letters){const name=KEY_NAMES[((midi%12)+12)%12];const oct=String(Math.floor(midi/12)-1);return keyLabel(name,oct,letters)||'?';}

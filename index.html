@@ -225,7 +225,8 @@ html,body {
 /* Neon Tech's white lyric outline is nearly invisible against its own light
    text/background colors — swap to a black outline on this skin only. */
 [data-skin="tech"] .note-lyric,
-[data-skin="christmas"] .note-lyric {
+[data-skin="christmas"] .note-lyric,
+[data-skin="mayan"] .note-lyric {
   text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;
 }
 
@@ -571,11 +572,12 @@ html,body {
 .oct3-mode .klbl.w { width:1.3em; height:1.3em; }
 .oct3-mode .klbl.b { width:1.3em; height:1.3em; }
 /* Octave-boundary line (between the "12" and "1" keys, i.e. B->C into the
-   next octave) — uses the skin's own accent color instead of a fixed
-   black so it stays clearly visible against any key texture, including
-   Mayan's busy carved-stone photo keys where a plain dark line could get
-   lost. */
+   next octave) — uses the skin's own accent color for contrast against
+   most key colors. Mayan gets a plain black line instead (overridden
+   below) — its accent gold was too close to the keys' own gold-brown
+   border/glyph tones to read clearly as a separate boundary marker. */
 .oct3-mode .wk.oct-boundary { border-left:3px solid var(--accent) !important; }
+[data-skin="mayan"] .oct3-mode .wk.oct-boundary { border-left-color:#000 !important; }
 
 /* ── Settings sheet ──────────────────────────────────────────────────── */
 .overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100; opacity:0; pointer-events:none; transition:opacity .25s; }

@@ -1824,7 +1824,12 @@ function getPhrases(){
   let cur=[];
   S.song.notes.forEach((note,i)=>{
     if(note.isPhrase){if(cur.length)phrases.push(cur);cur=[];}
-    else cur.push({...note,_idx:i});
+    // Tied continuation notes (the extra duration of a dotted note, e.g. the
+    // sustained half of "Hap-" in a dotted-eighth pickup) have no syllable
+    // of their own -- they exist only so playback timing is correct, not to
+    // be shown as their own cell. Skip them here so e.g. "Hap" sits directly
+    // next to "py" instead of leaving a gap where a phantom rest would be.
+    else if(!note.isTied) cur.push({...note,_idx:i});
   });
   if(cur.length)phrases.push(cur);
   return phrases;
@@ -1838,13 +1843,12 @@ function buildNoteDisplay(){
   _buildPhraseRows();
 }
 
-// Note-cell width is computed per row (not a fixed constant) so a word that
-// needs more room (e.g. "birth", "flow'rs") gets it WITHOUT touching its
-// neighbor — short/sparse rows can afford to widen, long rows (e.g. Jingle
-// Bells' 14-note line) stay tight so they don't overflow the row's fixed
-// container width (.phrase-row has overflow:hidden, so overflowing cells
-// would be silently clipped, which is worse than a slightly narrow cell).
-const NOTE_CELL_MIN=58, NOTE_CELL_GAP=10, ROW_PAD=32;
+// Note-cell width defaults to NOTE_CELL_MIN (58px, matching the note-bubble
+// circle). A cell only grows past that when its own lyric doesn't fit --
+// everything else stays at default spacing, and the wider cell simply
+// pushes the following cells to the right (normal flex flow), rather than
+// shrinking every cell in the row to a shared budget.
+const NOTE_CELL_MIN=58;
 let _lyricMeasureCtx=null;
 function _lyricFont(){
   // Measured synchronously (append -> read -> remove, no yield to the event
@@ -1858,19 +1862,15 @@ function _lyricFont(){
   document.body.removeChild(probe);
   return font;
 }
-function _rowCellWidth(phrase,containerWidth){
-  if(!phrase||!phrase.length)return NOTE_CELL_MIN;
-  const n=phrase.length;
-  const budget=(containerWidth-ROW_PAD-(n-1)*NOTE_CELL_GAP)/n;
+function _lyricCellWidth(lyric,containerWidth){
+  if(!lyric)return NOTE_CELL_MIN;
   if(!_lyricMeasureCtx)_lyricMeasureCtx=document.createElement('canvas').getContext('2d');
   _lyricMeasureCtx.font=_lyricFont();
-  let maxW=NOTE_CELL_MIN;
-  phrase.forEach(note=>{
-    if(!note.lyric)return;
-    const w=_lyricMeasureCtx.measureText(note.lyric).width+6;
-    if(w>maxW)maxW=w;
-  });
-  return Math.max(NOTE_CELL_MIN,Math.min(maxW,budget));
+  const needed=_lyricMeasureCtx.measureText(lyric).width+6;
+  // Safety ceiling only -- prevents one pathological word from blowing past
+  // the visible row entirely; ordinary words never get near this.
+  const ceiling=Math.max(NOTE_CELL_MIN,(containerWidth||1280)-32);
+  return Math.max(NOTE_CELL_MIN,Math.min(needed,ceiling));
 }
 
 function _makePhrasRow(phrase,cls,containerWidth){
@@ -1880,11 +1880,11 @@ function _makePhrasRow(phrase,cls,containerWidth){
     // Guitar/bass size this row via their own --gb-size/--gl-fs CSS vars
     // (tuned for the shorter fretboard-mode top strip) -- leave those alone.
     const dynamic=!STRING_INST[S.instrument];
-    const w=dynamic?_rowCellWidth(phrase,containerWidth):null;
     phrase.forEach(note=>{
       const cell=document.createElement('div');
       cell.className='note-cell '+(note.isRest?'rest':'upcoming');
       cell.id='nc-'+note._idx;
+      const w=dynamic?_lyricCellWidth(note.lyric,containerWidth):null;
       if(dynamic)cell.style.width=w+'px';
       const bub=document.createElement('div');bub.className='note-bubble';bub.id='nb-'+note._idx;
       bub.textContent=noteLabel(note,S.letters);

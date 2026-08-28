@@ -66,6 +66,16 @@
 [data-skin="candy"]     { --font:'Chewy',system-ui,sans-serif; }
 [data-skin="christmas"] { --font:'Mountains of Christmas',system-ui,sans-serif; }
 [data-skin="tech"]      { --font:'Orbitron',system-ui,sans-serif; }
+/* Orbitron's glyphs run noticeably wider than the other skins' fonts
+   (~10-15% at the same font-size, measured via canvas.measureText) — at
+   the shared 34px/80px .note-lyric size+width, common syllables were
+   wide enough to visually crowd into the next note-cell regardless of
+   ellipsis truncation, since .note-cell (58px) + its flex gap (6px) only
+   allows 64px of real space before overlapping a neighbor, and 80px
+   permits a lot more than that. Shrink the font, tighten tracking, and
+   cap max-width at 60px (comfortably under the real 64px budget) so
+   truncation kicks in before overlap is even possible. */
+[data-skin="tech"] .note-lyric { font-size:29px; letter-spacing:-0.5px; max-width:60px; }
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 html,body {
   width:100%; height:100%;

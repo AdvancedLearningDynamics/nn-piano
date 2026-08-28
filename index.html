@@ -1838,17 +1838,57 @@ function buildNoteDisplay(){
   _buildPhraseRows();
 }
 
-function _makePhrasRow(phrase,cls){
+// Note-cell width is computed per row (not a fixed constant) so a word that
+// needs more room (e.g. "birth", "flow'rs") gets it WITHOUT touching its
+// neighbor — short/sparse rows can afford to widen, long rows (e.g. Jingle
+// Bells' 14-note line) stay tight so they don't overflow the row's fixed
+// container width (.phrase-row has overflow:hidden, so overflowing cells
+// would be silently clipped, which is worse than a slightly narrow cell).
+const NOTE_CELL_MIN=58, NOTE_CELL_GAP=10, ROW_PAD=32;
+let _lyricMeasureCtx=null;
+function _lyricFont(){
+  // Measured synchronously (append -> read -> remove, no yield to the event
+  // loop in between) so it never actually paints -- no need for
+  // position/visibility juggling on the probe.
+  const probe=document.createElement('div');
+  probe.className='note-lyric';
+  document.body.appendChild(probe);
+  const cs=getComputedStyle(probe);
+  const font=`${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  document.body.removeChild(probe);
+  return font;
+}
+function _rowCellWidth(phrase,containerWidth){
+  if(!phrase||!phrase.length)return NOTE_CELL_MIN;
+  const n=phrase.length;
+  const budget=(containerWidth-ROW_PAD-(n-1)*NOTE_CELL_GAP)/n;
+  if(!_lyricMeasureCtx)_lyricMeasureCtx=document.createElement('canvas').getContext('2d');
+  _lyricMeasureCtx.font=_lyricFont();
+  let maxW=NOTE_CELL_MIN;
+  phrase.forEach(note=>{
+    if(!note.lyric)return;
+    const w=_lyricMeasureCtx.measureText(note.lyric).width+6;
+    if(w>maxW)maxW=w;
+  });
+  return Math.max(NOTE_CELL_MIN,Math.min(maxW,budget));
+}
+
+function _makePhrasRow(phrase,cls,containerWidth){
   const row=document.createElement('div');
   row.className='phrase-row '+cls;
   if(phrase){
+    // Guitar/bass size this row via their own --gb-size/--gl-fs CSS vars
+    // (tuned for the shorter fretboard-mode top strip) -- leave those alone.
+    const dynamic=!STRING_INST[S.instrument];
+    const w=dynamic?_rowCellWidth(phrase,containerWidth):null;
     phrase.forEach(note=>{
       const cell=document.createElement('div');
       cell.className='note-cell '+(note.isRest?'rest':'upcoming');
       cell.id='nc-'+note._idx;
+      if(dynamic)cell.style.width=w+'px';
       const bub=document.createElement('div');bub.className='note-bubble';bub.id='nb-'+note._idx;
       bub.textContent=noteLabel(note,S.letters);
-      const lyr=document.createElement('div');lyr.className='note-lyric';lyr.textContent=note.lyric||'';
+      const lyr=document.createElement('div');lyr.className='note-lyric';if(dynamic)lyr.style.maxWidth=w+'px';lyr.textContent=note.lyric||'';
       cell.appendChild(bub);cell.appendChild(lyr);row.appendChild(cell);
     });
   }
@@ -1861,8 +1901,9 @@ function _buildPhraseRows(){
   wrap.innerHTML='';
   const phrases=getPhrases();
   const pi=S.phraseIdx||0;
-  wrap.appendChild(_makePhrasRow(phrases[pi],'row-current'));
-  wrap.appendChild(_makePhrasRow(phrases[pi+1],'row-next'));
+  const containerWidth=wrap.clientWidth||wrap.getBoundingClientRect().width||1280;
+  wrap.appendChild(_makePhrasRow(phrases[pi],'row-current',containerWidth));
+  wrap.appendChild(_makePhrasRow(phrases[pi+1],'row-next',containerWidth));
   refreshNoteDisplay();
 }
 const CANDY_KEY_COLORS={
@@ -2135,6 +2176,8 @@ document.getElementById('inst-sel').value='piano';
   new ResizeObserver(()=>{if(STRING_INST[S.instrument])buildFretboard();}).observe(document.getElementById('fretboard'));
   // Rebuild harmonica circles when container resizes
   new ResizeObserver(()=>{if(S.instrument==='harmonica')buildHarmonica();}).observe(document.getElementById('harp-board'));
+  // Recompute per-row note-cell widths when the phrase display resizes
+  new ResizeObserver(()=>{if(S.song)_buildPhraseRows();}).observe(document.getElementById('phrases-wrap'));
   new ResizeObserver(entries=>{
     const h=entries[0].contentRect.height;
     const sz=Math.round(Math.min(Math.max(h*0.28,28),54));

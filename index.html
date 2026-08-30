@@ -951,7 +951,15 @@ function applySkin(id) {
   document.getElementById('overlay').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
   applyKeyImages(id);
-  refreshNoteDisplay();
+  // Not just refreshNoteDisplay(): note-cell widths are measured against
+  // the ACTIVE skin's font (--font changes per skin, e.g. Mayan's plain
+  // system font vs Candy's Chewy), so a skin switch has to recompute them
+  // via a full rebuild -- refreshNoteDisplay() alone only updates existing
+  // cells' played/current state and label text, leaving widths sized for
+  // whichever skin was active when they were first built. That's exactly
+  // why a song loaded before a skin switch looked wrong (stale widths)
+  // until reselecting it forced loadSong() to rebuild from scratch.
+  _buildPhraseRows();
 }
 function applyKeyImages(skinId) {
   const skin = SKINS[skinId];

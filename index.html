@@ -320,7 +320,24 @@ html,body {
    to black so any sub-pixel rendering seam blends into the dark stone
    instead of showing the container's default grey. */
 [data-skin="mayan"] .wk { border-left:none; border-right:none; }
-[data-skin="mayan"] .white-keys { background:#000; }
+/* !important: same reason as the tech rule below -- .oct3-mode .white-keys
+   has equal specificity and comes later in the file, so 3-octave view
+   silently reverted this to the default tan/ivory background. */
+[data-skin="mayan"] .white-keys { background:#000 !important; }
+/* Neon City: same seam issue as Mayan above (each key stretches its own
+   copy of the art independently, so per-key side borders next to each
+   other read as a visible dividing line even with 0px actual gap) --
+   same fix: drop the side borders, black backdrop so any sub-pixel seam
+   disappears into the dark key art instead of showing through as a
+   bright crack. Black keys widened (7.9%->10.5%) to match how much
+   bolder they read now that the art fills them at its true aspect ratio
+   instead of being squeezed to the old width. */
+[data-skin="tech"] .wk { border-left:none; border-right:none; }
+/* !important: .oct3-mode .white-keys{background:var(--ivory-b)} (below)
+   has equal selector specificity and comes later in the file, so it wins
+   on plain specificity/source-order when 3-octave view is active. */
+[data-skin="tech"] .white-keys { background:#000 !important; }
+[data-skin="tech"] .bk { width:10.5%; }
 /* Irish Pub only: a small pixel-art dancing leprechaun in the panel's
    corner — built from the 34 individual dance-frame PNGs (already true
    alpha transparency, no chroma-key needed) at
@@ -952,6 +969,13 @@ function applySkin(id) {
   if(skinSel) skinSel.value=id;
   document.getElementById('overlay').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
+  // Same staleness class as the note-cell width fix above: buildKeyboard()
+  // sizes oct3-mode's black keys via a skin-dependent inline width (Neon
+  // City's art needs a wider ratio -- see buildKeyboard()), set once at
+  // build time and never revisited on its own. Rebuild here too so
+  // switching skin alone (no instrument switch) doesn't leave black keys
+  // sized for whichever skin was active when the keyboard was last built.
+  if (S.instrument==='piano') buildKeyboard();
   applyKeyImages(id);
   // Not just refreshNoteDisplay(): note-cell widths are measured against
   // the ACTIVE skin's font (--font changes per skin, e.g. Mayan's plain
@@ -1685,7 +1709,11 @@ function buildKeyboard(){
   wc.innerHTML='';bc.innerHTML='';
   document.getElementById('keyboard').classList.toggle('oct3-mode',S.oct3);
   if(S.oct3){
-    const OCTS=['3','4','5'],N=21,bkW=(100/N)*0.63;
+    // Neon City's black keys read as too thin at the default 0.63 ratio
+    // once their art fills them at its true aspect ratio (see the
+    // [data-skin="tech"] .bk CSS rule for the non-oct3-mode case, which
+    // this inline width -- set per key below -- otherwise overrides.
+    const OCTS=['3','4','5'],N=21,bkRatio=(S.skin==='tech')?0.84:0.63,bkW=(100/N)*bkRatio;
     OCTS.forEach((oct,oi)=>{
       WHITE_ORD.forEach((name,wi)=>{
         const d=document.createElement('div');d.className='wk'+(wi===0&&oi>0?' oct-boundary':'');

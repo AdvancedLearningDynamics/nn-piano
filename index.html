@@ -394,11 +394,20 @@ html,body {
 }
 .tech-ship {
   display:none; position:absolute; z-index:4; pointer-events:none;
-  width:var(--tech-decor-w,140px); height:auto;
+  width:var(--tech-decor-w,140px); height:auto; transform-origin:center center;
+  animation:tech-ship-fly 30s linear infinite;
 }
 [data-skin="tech"] .tech-ship { display:block; }
+/* mirrored so the nose leads (points left, into the direction of travel);
+   shrinks toward the end to read as flying off into the distance, not just
+   sliding offscreen. A little faster than the truck's 40s per Jason's ask. */
+@keyframes tech-ship-fly {
+  from { transform:scaleX(-1) translateX(0) scale(1); }
+  to   { transform:scaleX(-1) translateX(120vw) scale(0.3); }
+}
 #tech-ship1 { top:8%; right:4%; }
-#tech-ship2 { top:24%; right:16%; }
+/* offset so the two ships don't fly in lockstep */
+#tech-ship2 { top:24%; right:16%; animation-delay:-11s; }
 .guitar-mode .bot { flex:0 0 50vh; min-height:120px; padding:0; }
 #guitar-wrap { display:none; flex-direction:column; width:100%; height:100%; }
 .guitar-mode #guitar-wrap { display:flex; }

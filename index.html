@@ -984,6 +984,13 @@ function applySkin(id) {
   // why a song loaded before a skin switch looked wrong (stale widths)
   // until reselecting it forced loadSong() to rebuild from scratch.
   _buildPhraseRows();
+  // buildKeyboard() above threw away the old key elements and built fresh
+  // ones, so whichever key was showing the "next note" glow lost it --
+  // same staleness class as the two fixes above, just never caught here.
+  // Re-derive it on the new elements (fretboard/harmonica have no
+  // buildKeyboard() call above, but re-running their own highlight logic
+  // here is harmless and keeps this correct if that ever changes).
+  highlightNext();
 }
 function applyKeyImages(skinId) {
   const skin = SKINS[skinId];

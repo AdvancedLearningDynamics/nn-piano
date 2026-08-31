@@ -1015,13 +1015,17 @@ function applyKeyImages(skinId) {
   }
   // keyImgAspect: Neon City's key art (a single tall illustrated key, not a
   // repeating pattern) is proportioned narrower, relative to its own height,
-  // than the actual key box -- stretching it to a flat 100% 100% would
+  // than the white key box -- stretching it to a flat 100% 100% would
   // stretch it wide and skew the neon border/bevel linework. '100% auto'
   // scales it to the key's real width undistorted, then lets it overflow
   // vertically (cropped by the box, centered) -- full-width coverage with no
   // side gaps/seams, at the cost of a symmetric top/bottom crop.
+  // Black keys instead always use a flat 100% 100% stretch: the black key
+  // box is short enough that '100% auto' crops off the art's bottom bevel
+  // entirely, and showing the whole image (bottom included), distorted, is
+  // preferred over a boldly-proportioned but incomplete image.
   const wkSize=skin.keyImgAspect?'100% auto':'100% 100%';
-  const bkSize=skin.keyImgAspect?'100% auto':'100% 100%';
+  const bkSize='100% 100%';
   if (skin.wkImg) document.querySelectorAll('.wk').forEach(el=>{el.style.backgroundImage=`url(${skin.wkImg})`;el.style.backgroundSize=wkSize;el.style.backgroundPosition=skin.keyImgAspect?'center center':'0 0';el.style.backgroundRepeat='no-repeat';});
   if (skin.bkImg) document.querySelectorAll('.bk').forEach(el=>{el.style.backgroundImage=`url(${skin.bkImg})`;el.style.backgroundSize=bkSize;el.style.backgroundPosition=skin.keyImgAspect?'center center':'0 0';el.style.backgroundRepeat='no-repeat';});
 }

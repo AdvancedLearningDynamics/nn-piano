@@ -376,25 +376,35 @@ html,body {
    keyboard on an endless loop -- a plain (non-alternating) keyframe loop
    naturally "disappears at the left edge and restarts at the right" on
    every iteration, since it jumps straight back to its 0% position when
-   it repeats. Two spaceships are static for now, parked in the sky on
-   the right side of the scene -- Jason's still deciding how they'll be
-   used. All three share --tech-decor-w (kept in sync with the actual
-   keyboard's current white-key width by updateTechDecorSize(), since
-   these live in the scene panel above the keyboard, not inside it, and
-   have no other way to know how wide a white key currently renders at). */
+   it repeats. Two spaceships fly the same direction, shrinking as if
+   receding into the distance. All three share --tech-decor-w (kept in
+   sync with the actual keyboard's current white-key width by
+   updateTechDecorSize(), since these live in the scene panel above the
+   keyboard, not inside it, and have no other way to know how wide a
+   white key currently renders at).
+   Both animate via `transform`, not `left`/`right` -- animating an
+   offset property forces the browser to re-run layout and repaint on
+   every single frame (expensive, and was the actual cause of visibly
+   choppy motion here), where `transform` can run entirely on the GPU
+   compositor. `will-change` hints the browser to promote them to their
+   own layer up front rather than deciding mid-animation. */
 .tech-truck {
-  display:none; position:absolute; bottom:0; z-index:4; pointer-events:none;
-  width:var(--tech-decor-w,140px); height:auto;
+  display:none; position:absolute; left:0; bottom:0; z-index:4; pointer-events:none;
+  width:var(--tech-decor-w,140px); height:auto; will-change:transform;
   animation:tech-truck-drive 40s linear infinite;
 }
 [data-skin="tech"] .tech-truck { display:block; }
 @keyframes tech-truck-drive {
-  from { left:100%; }
-  to   { left:calc(-1 * var(--tech-decor-w,140px)); }
+  /* distances measured off --tech-panel-w (see updateTechDecorSize()) so
+     this starts exactly off the right edge and ends exactly off the left
+     edge, matching the old left:100%->left:-100% distances exactly. */
+  from { transform:translateX(var(--tech-panel-w,1400px)); }
+  to   { transform:translateX(calc(-1 * var(--tech-decor-w,140px))); }
 }
 .tech-ship {
   display:none; position:absolute; z-index:4; pointer-events:none;
   width:var(--tech-decor-w,140px); height:auto; transform-origin:center center;
+  will-change:transform;
   animation:tech-ship-fly 30s linear infinite;
 }
 [data-skin="tech"] .tech-ship { display:block; }
@@ -1810,6 +1820,12 @@ function updateTechDecorSize(){
   const n=S.oct3?21:7;
   const wkWidth=wc.offsetWidth/n;
   document.documentElement.style.setProperty('--tech-decor-w',(wkWidth*2)+'px');
+  // Truck drive distance: the scene panel's own width, so its transform-based
+  // animation (see .tech-truck below) can travel exactly from just off the
+  // right edge to just off the left edge, same as the old left:100%->
+  // left:-100% would have, without the layout-thrashing left animates.
+  const panel=document.querySelector('.panel');
+  if(panel&&panel.offsetWidth) document.documentElement.style.setProperty('--tech-panel-w',panel.offsetWidth+'px');
 }
 // Black key `left` is measured off the actual rendered white keys instead of a
 // fixed percentage: the single-octave row has a 2px flex gap between white

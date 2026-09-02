@@ -273,6 +273,14 @@ html,body {
 [data-skin="pub"] .note-lyric {
   text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;
 }
+/* phone-mode: a phone is viewed from further away / at a smaller physical
+   scale than a monitor -- there's a real legibility floor below which the
+   note number and lyric stop being readable at a glance, so both get
+   bigger rather than just scaling down with everything else. !important
+   because the skin-specific font-size rules above share this same
+   selector specificity and phone-mode has to win regardless of skin. */
+.phone-mode .note-bubble { width:58px; height:58px; font-size:38px !important; }
+.phone-mode .note-lyric { font-size:40px !important; max-width:78px; }
 
 
 .status { position:absolute; top:4px; left:50%; transform:translateX(-50%); font-size:9px; font-weight:700; color:var(--sub); z-index:5; pointer-events:none; transition:color .15s; white-space:nowrap; }
@@ -372,6 +380,12 @@ html,body {
   from { left:0; }
   to   { left:calc(100% - 96px); }
 }
+/* phone-mode: scale the whole rendered sprite down with a post-render
+   transform rather than touching width/height/background-size directly --
+   the sprite-sheet stepping math (steps(34), -3264px) is tuned exactly to
+   the element's own 96px width, so resizing the box would desync the
+   frames; a transform leaves that untouched and just shrinks the result. */
+.phone-mode .pub-leprechaun { transform:scale(0.62); transform-origin:bottom left; }
 /* Neon City: garbage truck drives right-to-left along the top of the
    keyboard on an endless loop -- a plain (non-alternating) keyframe loop
    naturally "disappears at the left edge and restarts at the right" on
@@ -418,6 +432,14 @@ html,body {
 #tech-ship1 { top:8%; right:4%; }
 /* offset so the two ships don't fly in lockstep */
 #tech-ship2 { top:24%; right:16%; animation-delay:-11s; }
+/* phone-mode: faster + shrinks further (0.3x -> 0.12x) than the desktop
+   version, per Jason's ask -- overriding just animation-name/-duration
+   (not the shorthand) leaves ship2's animation-delay above untouched. */
+@keyframes tech-ship-fly-phone {
+  from { transform:scaleX(-1) translateX(0) scale(1); }
+  to   { transform:scaleX(-1) translateX(120vw) scale(0.12); }
+}
+.phone-mode .tech-ship { animation-name:tech-ship-fly-phone; animation-duration:16s; }
 .guitar-mode .bot { flex:0 0 50vh; min-height:120px; padding:0; }
 #guitar-wrap { display:none; flex-direction:column; width:100%; height:100%; }
 .guitar-mode #guitar-wrap { display:flex; }
@@ -1819,7 +1841,11 @@ function updateTechDecorSize(){
   if(!wc||!wc.offsetWidth)return;
   const n=S.oct3?21:7;
   const wkWidth=wc.offsetWidth/n;
-  document.documentElement.style.setProperty('--tech-decor-w',(wkWidth*2)+'px');
+  // phone-mode: smaller multiple of the white-key width -- at phone sizes
+  // "two white keys" reads as oversized against the shrunk-down scene, per
+  // Jason's ask to scale the truck/ships down specifically on phone.
+  const phone=document.documentElement.classList.contains('phone-mode');
+  document.documentElement.style.setProperty('--tech-decor-w',(wkWidth*(phone?1.1:2))+'px');
   // Truck drive distance: the scene panel's own width, so its transform-based
   // animation (see .tech-truck below) can travel exactly from just off the
   // right edge to just off the left edge, same as the old left:100%->
@@ -1827,6 +1853,18 @@ function updateTechDecorSize(){
   const panel=document.querySelector('.panel');
   if(panel&&panel.offsetWidth) document.documentElement.style.setProperty('--tech-panel-w',panel.offsetWidth+'px');
 }
+// phone-mode: a real physical-screen-size concern (small decorative sprites
+// and font sizes need to be bigger/smaller than what looks right on a
+// desktop monitor -- "a human threshold... to consider" per Jason), so this
+// is a plain width check, independent of the touch-based oct3 default above
+// (a touchscreen laptop has plenty of room and shouldn't trigger it).
+function updatePhoneMode(){
+  const was=document.documentElement.classList.contains('phone-mode');
+  const isPhone=window.innerWidth<600;
+  document.documentElement.classList.toggle('phone-mode',isPhone);
+  if(isPhone!==was){ updateTechDecorSize(); if(S.song)_buildPhraseRows(); }
+}
+window.addEventListener('resize',updatePhoneMode);
 // Black key `left` is measured off the actual rendered white keys instead of a
 // fixed percentage: the single-octave row has a 2px flex gap between white
 // keys, a fixed length that doesn't scale with a percentage-based `left`, so
@@ -1985,12 +2023,13 @@ function buildNoteDisplay(){
   _buildPhraseRows();
 }
 
-// Note-cell width defaults to NOTE_CELL_MIN (58px, matching the note-bubble
-// circle). A cell only grows past that when its own lyric doesn't fit --
-// everything else stays at default spacing, and the wider cell simply
-// pushes the following cells to the right (normal flex flow), rather than
-// shrinking every cell in the row to a shared budget.
-const NOTE_CELL_MIN=58;
+// Note-cell width defaults to noteCellMin() (58px, matching the note-bubble
+// circle -- 68px in phone-mode, matching the bigger phone-mode bubble). A
+// cell only grows past that when its own lyric doesn't fit -- everything
+// else stays at default spacing, and the wider cell simply pushes the
+// following cells to the right (normal flex flow), rather than shrinking
+// every cell in the row to a shared budget.
+function noteCellMin(){ return document.documentElement.classList.contains('phone-mode') ? 68 : 58; }
 let _lyricMeasureCtx=null;
 function _lyricFont(){
   // Measured synchronously (append -> read -> remove, no yield to the event
@@ -2021,18 +2060,19 @@ function _lyricFont(){
   if(ok)return font;
   const fam=getComputedStyle(document.documentElement).getPropertyValue('--font').trim()
     || "system-ui,-apple-system,'Segoe UI',sans-serif";
-  const fs=document.documentElement.dataset.skin==='tech' ? '29px' : '34px';
+  const phone=document.documentElement.classList.contains('phone-mode');
+  const fs=phone ? '40px' : (document.documentElement.dataset.skin==='tech' ? '29px' : '34px');
   return `800 ${fs} ${fam}`;
 }
 function _lyricCellWidth(lyric,containerWidth){
-  if(!lyric)return NOTE_CELL_MIN;
+  if(!lyric)return noteCellMin();
   if(!_lyricMeasureCtx)_lyricMeasureCtx=document.createElement('canvas').getContext('2d');
   _lyricMeasureCtx.font=_lyricFont();
   const needed=_lyricMeasureCtx.measureText(lyric).width+6;
   // Safety ceiling only -- prevents one pathological word from blowing past
   // the visible row entirely; ordinary words never get near this.
-  const ceiling=Math.max(NOTE_CELL_MIN,(containerWidth||1280)-32);
-  return Math.max(NOTE_CELL_MIN,Math.min(needed,ceiling));
+  const ceiling=Math.max(noteCellMin(),(containerWidth||1280)-32);
+  return Math.max(noteCellMin(),Math.min(needed,ceiling));
 }
 
 function _makePhrasRow(phrase,cls,containerWidth){
@@ -2313,6 +2353,7 @@ document.getElementById('favicon').href = document.querySelector('.hd-logo').src
 // Default to 3-octave on desktop, single octave on mobile/touch
 S.oct3 = !(navigator.maxTouchPoints > 0 || window.innerWidth < 768);
 document.getElementById('btn-oct3').classList.toggle('on', S.oct3);
+updatePhoneMode();
 buildKeyboard();
 rebuildGuitarPosMap();
 updateFretToolbar();

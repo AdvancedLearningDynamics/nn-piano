@@ -1856,11 +1856,17 @@ function updateTechDecorSize(){
 // phone-mode: a real physical-screen-size concern (small decorative sprites
 // and font sizes need to be bigger/smaller than what looks right on a
 // desktop monitor -- "a human threshold... to consider" per Jason), so this
-// is a plain width check, independent of the touch-based oct3 default above
+// is a plain size check, independent of the touch-based oct3 default above
 // (a touchscreen laptop has plenty of room and shouldn't trigger it).
+// Uses the SHORTER of width/height, not just width: a piano app is
+// naturally used in landscape (more room for the keyboard), and a phone in
+// landscape is only "short," not "narrow" -- e.g. an iPhone is ~390px wide
+// in portrait but ~850px wide in landscape, which a width-only check would
+// have missed entirely (confirmed against a real landscape iPhone
+// screenshot, where the truck/ships were still full-size).
 function updatePhoneMode(){
   const was=document.documentElement.classList.contains('phone-mode');
-  const isPhone=window.innerWidth<600;
+  const isPhone=Math.min(window.innerWidth,window.innerHeight)<600;
   document.documentElement.classList.toggle('phone-mode',isPhone);
   if(isPhone!==was){ updateTechDecorSize(); if(S.song)_buildPhraseRows(); }
 }

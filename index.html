@@ -456,20 +456,34 @@ html,body {
    couple of rendered pixels and reads as nothing -- opacity reads the same
    regardless of how small the element's box has gotten, so it's what
    actually keeps the pulse visible for the whole flight, not just at the
-   start when the ship is still large. */
+   start when the ship is still large. The scaleX values are negative --
+   worked out in the Rocket Exhaust Lab that the flame's own art reads
+   backwards otherwise (Jason's direct visual call, flipped from the
+   original compositing) -- transform-origin:right above keeps the nozzle
+   end anchored while the flip and pulse both apply around it. */
 @keyframes tech-ship-flame-pulse {
-  0%,100% { transform:scaleX(.8); opacity:.65; }
-  50%     { transform:scaleX(1.2); opacity:1; }
+  0%,100% { transform:scaleX(-.8); opacity:.65; }
+  50%     { transform:scaleX(-1.2); opacity:1; }
 }
+/* Hard-cut, not a crossfade: worked out in the lab that a smooth fade
+   between two nearly-identical particle frames reads as "pulsing," not
+   "running" -- these hold flat at each frame for the first 49.5% of the
+   cycle, then snap (a 0.5%-of-duration keyframe gap, not a timing
+   function -- steps() sampling a 2-point ramp doesn't land cleanly on
+   the two endpoints) rather than fading between them. */
 .tech-ship-frame {
   position:absolute; inset:0; width:100%; height:100%;
-  animation:tech-ship-flicker 1.8s ease-in-out infinite;
+  animation-duration:1.8s; animation-timing-function:linear; animation-iteration-count:infinite;
 }
-.tech-ship-frame.f1 { animation-delay:0s; }
-.tech-ship-frame.f2 { animation-delay:-.9s; }
-@keyframes tech-ship-flicker {
-  0%,100% { opacity:1; }
-  50%     { opacity:.25; }
+.tech-ship-frame.f1 { animation-name:tech-ship-flicker-a; }
+.tech-ship-frame.f2 { animation-name:tech-ship-flicker-b; }
+@keyframes tech-ship-flicker-a {
+  0%,49.5% { opacity:1; }
+  50%,100% { opacity:.25; }
+}
+@keyframes tech-ship-flicker-b {
+  0%,49.5% { opacity:.25; }
+  50%,100% { opacity:1; }
 }
 /* mirrored so the nose leads (points left, into the direction of travel);
    shrinks toward the end to read as flying off into the distance, not just

@@ -440,30 +440,25 @@ html,body {
 [data-skin="tech"] .tech-ship { display:block; }
 .tech-ship-img { position:absolute; inset:0; width:100%; height:100%; }
 /* Flame lives behind the ship (painted first, see buildTechShips()) as its
-   own independently-animated layer -- sized/positioned as a fraction of
-   the ship box, worked out against the ship's native 1660x728 crop (see
-   the comment above buildTechShips()). transform-origin:right so the
-   scale-pulse grows/shrinks the flame's TAIL while its nozzle end stays
-   anchored at the engine, instead of the whole flame drifting. */
+   own layer -- sized/positioned as a fraction of the ship box, worked out
+   against the ship's native 1660x728 crop (see the comment above
+   buildTechShips()). Per Jason: no more size pulsing -- "this is just a
+   running sprite animation" -- so this is a STATIC flip only (negative
+   scaleX; the flame's own art reads backwards unflipped, his direct visual
+   call), not an animation. transform-origin:right keeps the flip anchored
+   at the nozzle end instead of mirroring around the box's own center.
+   Positioned with `left`, not `right`: .tech-ship (the parent) is itself
+   mirrored by the flight animation, and CSS transform on a parent flips
+   its children's LAYOUT positions too, not just their paint -- a child
+   positioned via `right` therefore renders on the ship's NOSE side after
+   the parent's mirror, not its tail (confirmed by measuring
+   getBoundingClientRect at full scale: right:X% landed the flame
+   overlapping the cockpit, not the engines). `left:0%` was the value
+   that, measured the same way, put the flame's near edge right at the
+   engines with no gap and no cockpit overlap. */
 .tech-ship-flame {
-  position:absolute; right:74.7%; top:21.36%; width:85.72%; height:34.2%;
-  transform-origin:right center;
-  animation:tech-ship-flame-pulse .5s ease-in-out infinite;
-}
-/* opacity is bundled into the same pulse, not left to scaleX alone: once the
-   ship has shrunk most of the way through its "flying into the distance"
-   animation, a 35% *geometric* swing on an already-tiny element is only a
-   couple of rendered pixels and reads as nothing -- opacity reads the same
-   regardless of how small the element's box has gotten, so it's what
-   actually keeps the pulse visible for the whole flight, not just at the
-   start when the ship is still large. The scaleX values are negative --
-   worked out in the Rocket Exhaust Lab that the flame's own art reads
-   backwards otherwise (Jason's direct visual call, flipped from the
-   original compositing) -- transform-origin:right above keeps the nozzle
-   end anchored while the flip and pulse both apply around it. */
-@keyframes tech-ship-flame-pulse {
-  0%,100% { transform:scaleX(-.8); opacity:.65; }
-  50%     { transform:scaleX(-1.2); opacity:1; }
+  position:absolute; left:0%; top:21.36%; width:85.72%; height:34.2%;
+  transform-origin:right center; transform:scaleX(-1);
 }
 /* Hard-cut, not a crossfade: worked out in the lab that a smooth fade
    between two nearly-identical particle frames reads as "pulsing," not

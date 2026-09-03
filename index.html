@@ -447,17 +447,21 @@ html,body {
    scaleX; the flame's own art reads backwards unflipped, his direct visual
    call), not an animation. transform-origin:right keeps the flip anchored
    at the nozzle end instead of mirroring around the box's own center.
-   Positioned with `left`, not `right`: .tech-ship (the parent) is itself
-   mirrored by the flight animation, and CSS transform on a parent flips
-   its children's LAYOUT positions too, not just their paint -- a child
-   positioned via `right` therefore renders on the ship's NOSE side after
-   the parent's mirror, not its tail (confirmed by measuring
-   getBoundingClientRect at full scale: right:X% landed the flame
-   overlapping the cockpit, not the engines). `left:0%` was the value
-   that, measured the same way, put the flame's near edge right at the
-   engines with no gap and no cockpit overlap. */
+   Positioning this took two tries: .tech-ship (the parent) is mirrored by
+   the flight animation, which flips its children's LAYOUT positions too,
+   not just their paint -- but `left:0%` (the first fix) was ALSO wrong,
+   confirmed by dropping visible marker bars into the ship at known
+   pre-mirror x-fractions and screenshotting: a marker at pre-mirror 90%
+   (expected near the cockpit) rendered on-screen LEFT, and one at 12%
+   (expected near the engines) rendered on-screen RIGHT -- so the engines
+   are on-screen RIGHT, and `left:0%` was attaching the flame at the
+   cockpit end. The flame element's own scaleX(-1) flip (below) shifts
+   how `left%` maps to rendered position too -- re-swept the actual
+   element (not a plain proxy box) and -165% is what empirically lands
+   its near edge right at the ship's own right/engine edge, with a small
+   ~8px deliberate overlap so it reads as attached, not floating. */
 .tech-ship-flame {
-  position:absolute; left:0%; top:21.36%; width:85.72%; height:34.2%;
+  position:absolute; left:-165%; top:21.36%; width:85.72%; height:34.2%;
   transform-origin:right center; transform:scaleX(-1);
 }
 /* Hard-cut, not a crossfade: worked out in the lab that a smooth fade
@@ -465,10 +469,11 @@ html,body {
    "running" -- these hold flat at each frame for the first 49.5% of the
    cycle, then snap (a 0.5%-of-duration keyframe gap, not a timing
    function -- steps() sampling a 2-point ramp doesn't land cleanly on
-   the two endpoints) rather than fading between them. */
+   the two endpoints) rather than fading between them. .6s (was 1.8s) per
+   Jason's ask to cycle faster. */
 .tech-ship-frame {
   position:absolute; inset:0; width:100%; height:100%;
-  animation-duration:1.8s; animation-timing-function:linear; animation-iteration-count:infinite;
+  animation-duration:.6s; animation-timing-function:linear; animation-iteration-count:infinite;
 }
 .tech-ship-frame.f1 { animation-name:tech-ship-flicker-a; }
 .tech-ship-frame.f2 { animation-name:tech-ship-flicker-b; }

@@ -459,13 +459,15 @@ html,body {
    was the part touching the ship -- so the visible, solid fire always sat
    away from the hull with a soft-fade gap in between, reading as
    disconnected no matter how tight `left%` was pulled in. Removing that
-   flip (image is already correctly oriented base-first without it) puts
-   the solid end at the ship; marker-verified: at left:-84% the solid-end
-   marker sits flush on the ship's own right/engine edge with the usual
-   ~2px deliberate overlap, and the fading tip lands out at the flame's
-   far end where it belongs. */
+   flip fixed attachment (marker-verified: at left:-84% the solid end
+   sits flush on the ship's own right/engine edge). Per Jason, the flame
+   still needed a horizontal flip -- transform-origin defaults to center
+   here (not "right" like the old flip), which mirrors the art in place
+   without re-shifting the box: box footprint measured identical with and
+   without this transform, only the pixel content inside it reverses. */
 .tech-ship-flame {
   position:absolute; left:-84%; top:21.36%; width:85.72%; height:34.2%;
+  transform:scaleX(-1);
 }
 /* Hard-cut, not a crossfade: worked out in the lab that a smooth fade
    between two nearly-identical particle frames reads as "pulsing," not

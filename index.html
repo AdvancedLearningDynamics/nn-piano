@@ -457,11 +457,12 @@ html,body {
    are on-screen RIGHT, and `left:0%` was attaching the flame at the
    cockpit end. The flame element's own scaleX(-1) flip (below) shifts
    how `left%` maps to rendered position too -- re-swept the actual
-   element (not a plain proxy box) and -165% is what empirically lands
-   its near edge right at the ship's own right/engine edge, with a small
-   ~8px deliberate overlap so it reads as attached, not floating. */
+   element (not a plain proxy box) and -172% (was -165%, per Jason's ask
+   to move it closer still) lands its near edge almost exactly on the
+   ship's own right/engine edge, ~1px of overlap so it reads as attached
+   without visibly cutting into the hull. */
 .tech-ship-flame {
-  position:absolute; left:-165%; top:21.36%; width:85.72%; height:34.2%;
+  position:absolute; left:-172%; top:21.36%; width:85.72%; height:34.2%;
   transform-origin:right center; transform:scaleX(-1);
 }
 /* Hard-cut, not a crossfade: worked out in the lab that a smooth fade
@@ -469,11 +470,11 @@ html,body {
    "running" -- these hold flat at each frame for the first 49.5% of the
    cycle, then snap (a 0.5%-of-duration keyframe gap, not a timing
    function -- steps() sampling a 2-point ramp doesn't land cleanly on
-   the two endpoints) rather than fading between them. .6s (was 1.8s) per
-   Jason's ask to cycle faster. */
+   the two endpoints) rather than fading between them. .3s (was 1.8s,
+   then .6s) per Jason's repeated ask to cycle faster. */
 .tech-ship-frame {
   position:absolute; inset:0; width:100%; height:100%;
-  animation-duration:.6s; animation-timing-function:linear; animation-iteration-count:infinite;
+  animation-duration:.3s; animation-timing-function:linear; animation-iteration-count:infinite;
 }
 .tech-ship-frame.f1 { animation-name:tech-ship-flicker-a; }
 .tech-ship-frame.f2 { animation-name:tech-ship-flicker-b; }
@@ -2389,7 +2390,16 @@ function loadSong(id){
   buildNoteDisplay();buildOctSel();updateKeyLabels();updateOctSelVisibility();updateScore();setStatus('');
   if(STRING_INST[S.instrument]){autoFretStart();buildFretboard();updateFretToolbar();}
   if(S.instrument==='harmonica')updateHarpLabels();
-  requestAnimationFrame(highlightNext);
+  // Was requestAnimationFrame(highlightNext) -- deferring to the next paint
+  // for no documented reason, and unlike a rebuild step this doesn't touch
+  // the DOM structure, just reads it, so there's nothing to wait for.
+  // Confirmed the deferral was live-loss-prone: on a cold boot, the tab's
+  // very first rAF can be skipped/delayed by the browser (backgrounded or
+  // still-settling tabs don't reliably get one soon), leaving the first
+  // note unhighlighted until some other event (a keypress, a resize)
+  // happened to call highlightNext() again. Direct call removes that
+  // dependency entirely.
+  highlightNext();
 }
 function rewind(){stopAuto();clearTimeout(_idleTimer);_lastPulsePos=-1;document.getElementById('app').classList.remove('song-started');if(S.song){S.song.rewind();_autoIdx=0;S.correct=0;S.total=0;S.phraseIdx=0;autoSwitchOctave();buildNoteDisplay();highlightNext();updateScore();setStatus('');}}
 

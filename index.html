@@ -443,27 +443,29 @@ html,body {
    own layer -- sized/positioned as a fraction of the ship box, worked out
    against the ship's native 1660x728 crop (see the comment above
    buildTechShips()). Per Jason: no more size pulsing -- "this is just a
-   running sprite animation" -- so this is a STATIC flip only (negative
-   scaleX; the flame's own art reads backwards unflipped, his direct visual
-   call), not an animation. transform-origin:right keeps the flip anchored
-   at the nozzle end instead of mirroring around the box's own center.
-   Positioning this took two tries: .tech-ship (the parent) is mirrored by
-   the flight animation, which flips its children's LAYOUT positions too,
-   not just their paint -- but `left:0%` (the first fix) was ALSO wrong,
-   confirmed by dropping visible marker bars into the ship at known
-   pre-mirror x-fractions and screenshotting: a marker at pre-mirror 90%
-   (expected near the cockpit) rendered on-screen LEFT, and one at 12%
-   (expected near the engines) rendered on-screen RIGHT -- so the engines
-   are on-screen RIGHT, and `left:0%` was attaching the flame at the
-   cockpit end. The flame element's own scaleX(-1) flip (below) shifts
-   how `left%` maps to rendered position too -- re-swept the actual
-   element (not a plain proxy box) and -172% (was -165%, per Jason's ask
-   to move it closer still) lands its near edge almost exactly on the
-   ship's own right/engine edge, ~1px of overlap so it reads as attached
-   without visibly cutting into the hull. */
+   running sprite animation" -- so this is a static position, not an
+   animated one. .tech-ship (the parent) is mirrored by the flight
+   animation, which flips children's LAYOUT positions too, so `left:0%`
+   (the first fix) attached at the cockpit end, not the engines -- confirmed
+   by dropping visible marker bars at known pre-mirror x-fractions and
+   screenshotting (pre-mirror 90%, expected near the cockpit, rendered
+   on-screen LEFT; pre-mirror 12%, expected near the engines, rendered
+   on-screen RIGHT -- so engines are on-screen RIGHT). A prior version also
+   added the flame element's OWN scaleX(-1) flip to fix that, but that flip
+   was inverting more than intended: dropping colored marker divs *inside*
+   the flame (not just the wrapper) showed the image's solid/opaque end
+   (its actual base -- where real exhaust is brightest) was landing on the
+   far/outer side of the rendered flame, and the soft, half-transparent tip
+   was the part touching the ship -- so the visible, solid fire always sat
+   away from the hull with a soft-fade gap in between, reading as
+   disconnected no matter how tight `left%` was pulled in. Removing that
+   flip (image is already correctly oriented base-first without it) puts
+   the solid end at the ship; marker-verified: at left:-84% the solid-end
+   marker sits flush on the ship's own right/engine edge with the usual
+   ~2px deliberate overlap, and the fading tip lands out at the flame's
+   far end where it belongs. */
 .tech-ship-flame {
-  position:absolute; left:-172%; top:21.36%; width:85.72%; height:34.2%;
-  transform-origin:right center; transform:scaleX(-1);
+  position:absolute; left:-84%; top:21.36%; width:85.72%; height:34.2%;
 }
 /* Hard-cut, not a crossfade: worked out in the lab that a smooth fade
    between two nearly-identical particle frames reads as "pulsing," not

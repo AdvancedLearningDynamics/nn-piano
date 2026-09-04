@@ -67,18 +67,24 @@
 [data-skin="christmas"] { --font:'Mountains of Christmas',system-ui,sans-serif; }
 [data-skin="tech"]      { --font:'Orbitron',system-ui,sans-serif; }
 /* Orbitron's glyphs run noticeably wider than the other skins' fonts
-   (~10-15% at the same font-size, measured via canvas.measureText) — at
-   the shared 34px/80px .note-lyric size+width, common syllables were
-   wide enough to visually crowd into the next note-cell regardless of
-   ellipsis truncation, since .note-cell (58px) + its flex gap (6px) only
-   allows 64px of real space before overlapping a neighbor, and 80px
-   permits a lot more than that. Shrink the font, tighten tracking, and
-   cap max-width at 60px (comfortably under the real 64px budget) so
-   truncation kicks in before overlap is even possible. */
+   (~10-15% at the same font-size, measured via canvas.measureText). This
+   used to matter for overlap-avoidance under a fixed per-cell width
+   budget, but note-cell width is now computed dynamically per lyric (see
+   _lyricCellWidth()/_makePhrasRow()), which measures the ACTUAL rendered
+   font (Orbitron included) and sizes each cell to fit -- so a too-narrow
+   fixed cell can no longer cause overlap or truncation on its own. Kept
+   deliberately smaller than the base size anyway, now purely to control
+   ROW-width growth: Orbitron's extra width still means tech's rows grow
+   wider than other skins' at the same font-size, and the app's phrases
+   have no per-viewport reflow (a phrase's note count is fixed by the
+   song data, not the screen), so a big enough font can push a dense
+   phrase's total row width past the panel and into the row's own
+   overflow:hidden clip. Verified against every built-in song at a
+   1280px-wide panel before landing on 38px. */
 /* #FF2FE0: the same saturated magenta already glowing in the Neon City
    key art and truck/ship neon trim -- "that bright pink" per Jason,
    picked to match rather than introduce a second, different pink. */
-[data-skin="tech"] .note-lyric { font-size:33px; letter-spacing:-0.5px; color:#FF2FE0 !important; }
+[data-skin="tech"] .note-lyric { font-size:38px; letter-spacing:-0.5px; color:#FF2FE0 !important; }
 /* !important: .note-cell.upcoming/.current .note-bubble (below) share this
    same selector specificity and come later in the file, so without it
    they'd win on source order and silently revert the color -- same class
@@ -259,7 +265,7 @@ html,body {
   width:54px; height:54px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
   border:2px solid var(--border); background:var(--surface-2);
-  font-family:var(--font); font-size:41px; font-weight:700; color:var(--sub);
+  font-family:var(--font); font-size:44px; font-weight:700; color:var(--sub);
   transition:all .18s; line-height:1; font-variant-numeric:tabular-nums;
 }
 .note-cell.upcoming .note-bubble { border-color:rgba(201,160,58,.45); color:var(--text); }
@@ -276,7 +282,7 @@ html,body {
      font — this wasn't Neon Tech/Orbitron-specific, it just needed a
      wide-enough word (e.g. "cross"/"buns" even in the plain system font)
      to trigger. */
-  font-family:var(--font); font-size:44px; font-weight:800; line-height:1; color:var(--text); text-align:center;
+  font-family:var(--font); font-size:48px; font-weight:800; line-height:1; color:var(--text); text-align:center;
   max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   /* Thickened from a 4-corner 1px outline -- users reported lyrics were
      hard to read against the busier skin backdrops. 8-direction at 2px
@@ -2208,14 +2214,25 @@ function _lyricFont(){
   // position/visibility juggling on the probe.
   //
   // Some embedded-iframe hosting environments (seen in practice with this
-  // app's published Artifact viewer) have returned an empty computed style
-  // for a probe measured this way -- font-size/font-family come back blank,
+  // app's published Artifact viewer, and plausibly the Squarespace embed
+  // too -- both are iframes) have returned an empty computed style for a
+  // probe measured this way -- font-size/font-family come back blank,
   // canvas silently falls back to its own tiny default font, measureText()
   // under-reports every word's width, and every lyric collapses to the
   // NOTE_CELL_MIN floor (visually: words truncate as if untested). Retry
   // once after forcing a reflow, and if it's STILL unusable, fall back to
-  // the same values .note-lyric's own CSS rule sets (34px/800, 29px for the
-  // tech skin) so a truncation regression can never silently reappear here.
+  // the same values .note-lyric's own CSS rule sets below (800 weight,
+  // 48px/38px for the tech skin/50px phone) so a truncation regression
+  // can never silently reappear here.
+  // CONFIRMED BUG (fixed here): these fallback numbers had gone stale
+  // after a font-size bump to the real CSS rules -- when the fallback
+  // path is the one that's actually active (the exact iframe scenario
+  // this comment describes), canvas measured text at the OLD smaller
+  // size while the DOM rendered it at the NEW bigger one, so every cell
+  // came out too narrow for what actually got drawn -- letters visibly
+  // clipped by the ellipsis, reported as "dropping letters" on iPhone.
+  // Keep these two numbers and the CSS rules below in lockstep by hand;
+  // there's no single source of truth wiring them together.
   const probe=document.createElement('div');
   probe.className='note-lyric';
   document.body.appendChild(probe);
@@ -2232,7 +2249,7 @@ function _lyricFont(){
   const fam=getComputedStyle(document.documentElement).getPropertyValue('--font').trim()
     || "system-ui,-apple-system,'Segoe UI',sans-serif";
   const phone=document.documentElement.classList.contains('phone-mode');
-  const fs=phone ? '45px' : (document.documentElement.dataset.skin==='tech' ? '33px' : '39px');
+  const fs=phone ? '50px' : (document.documentElement.dataset.skin==='tech' ? '38px' : '48px');
   return `800 ${fs} ${fam}`;
 }
 function _lyricCellWidth(lyric,containerWidth){

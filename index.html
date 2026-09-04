@@ -484,9 +484,15 @@ html,body {
    the density profile's actual x-fractions (not the naive 0%/100% edges)
    -- at left:-81% the dense body's own start (not just the box edge)
    lands ~1-2px past the ship's own right/engine edge, matching the usual
-   overlap convention used everywhere else in this file. */
+   overlap convention used everywhere else in this file.
+   -81% -> -73%: tuned by Jason directly in the standalone Rocket Exhaust
+   Lab artifact (real ship+flame assets, live left% slider + a screen-
+   pixel edge marker sibling to the mirrored rig, not nested inside it --
+   see the lab's own comments for why nesting the marker breaks it under
+   this same parent scaleX(-1)). Read off the lab's live CSS readout, not
+   re-derived. */
 .tech-ship-flame {
-  position:absolute; left:-81%; top:21.36%; width:85.72%; height:34.2%;
+  position:absolute; left:-73%; top:21.36%; width:85.72%; height:34.2%;
   transform:scaleX(-1);
 }
 /* Hard-cut, not a crossfade: worked out in the lab that a smooth fade
@@ -494,11 +500,12 @@ html,body {
    "running" -- these hold flat at each frame for the first 49.5% of the
    cycle, then snap (a 0.5%-of-duration keyframe gap, not a timing
    function -- steps() sampling a 2-point ramp doesn't land cleanly on
-   the two endpoints) rather than fading between them. .3s (was 1.8s,
-   then .6s) per Jason's repeated ask to cycle faster. */
+   the two endpoints) rather than fading between them. .2s (was 1.8s,
+   then .6s, then .3s) -- tuned in the same lab session as the position
+   above. */
 .tech-ship-frame {
   position:absolute; inset:0; width:100%; height:100%;
-  animation-duration:.3s; animation-timing-function:linear; animation-iteration-count:infinite;
+  animation-duration:.2s; animation-timing-function:linear; animation-iteration-count:infinite;
 }
 .tech-ship-frame.f1 { animation-name:tech-ship-flicker-a; }
 .tech-ship-frame.f2 { animation-name:tech-ship-flicker-b; }

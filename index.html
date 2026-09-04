@@ -259,7 +259,7 @@ html,body {
   width:54px; height:54px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
   border:2px solid var(--border); background:var(--surface-2);
-  font-family:var(--font); font-size:37px; font-weight:700; color:var(--sub);
+  font-family:var(--font); font-size:41px; font-weight:700; color:var(--sub);
   transition:all .18s; line-height:1; font-variant-numeric:tabular-nums;
 }
 .note-cell.upcoming .note-bubble { border-color:rgba(201,160,58,.45); color:var(--text); }
@@ -276,9 +276,19 @@ html,body {
      font — this wasn't Neon Tech/Orbitron-specific, it just needed a
      wide-enough word (e.g. "cross"/"buns" even in the plain system font)
      to trigger. */
-  font-family:var(--font); font-size:39px; font-weight:800; line-height:1; color:var(--text); text-align:center;
+  font-family:var(--font); font-size:44px; font-weight:800; line-height:1; color:var(--text); text-align:center;
   max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;
+  /* Thickened from a 4-corner 1px outline -- users reported lyrics were
+     hard to read against the busier skin backdrops. 8-direction at 2px
+     gives a fuller, smoother stroke (4 corners alone leave visible gaps
+     along the flat edges at this font-weight). Checked every song's
+     widest lyric words for cell-to-cell collision before locking this
+     size in -- worst case (Old MacDonald's "Mac-"/"Don-") still has a
+     16px gap, comfortably clear. */
+  text-shadow:
+    -2px -2px 0 #fff, 0 -2px 0 #fff, 2px -2px 0 #fff,
+    -2px  0   0 #fff,                2px  0   0 #fff,
+    -2px  2px 0 #fff, 0  2px 0 #fff, 2px  2px 0 #fff;
 }
 .note-cell.current .note-lyric { color:var(--text); }
 /* Neon Tech's white lyric outline is nearly invisible against its own light
@@ -287,7 +297,10 @@ html,body {
 [data-skin="christmas"] .note-lyric,
 [data-skin="mayan"] .note-lyric,
 [data-skin="pub"] .note-lyric {
-  text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;
+  text-shadow:
+    -2px -2px 0 #000, 0 -2px 0 #000, 2px -2px 0 #000,
+    -2px  0   0 #000,                2px  0   0 #000,
+    -2px  2px 0 #000, 0  2px 0 #000, 2px  2px 0 #000;
 }
 /* phone-mode: a phone is viewed from further away / at a smaller physical
    scale than a monitor -- there's a real legibility floor below which the
@@ -295,8 +308,8 @@ html,body {
    bigger rather than just scaling down with everything else. !important
    because the skin-specific font-size rules above share this same
    selector specificity and phone-mode has to win regardless of skin. */
-.phone-mode .note-bubble { width:64px; height:64px; font-size:43px !important; }
-.phone-mode .note-lyric { font-size:45px !important; max-width:84px; }
+.phone-mode .note-bubble { width:64px; height:64px; font-size:47px !important; }
+.phone-mode .note-lyric { font-size:50px !important; max-width:84px; }
 
 
 .status { position:absolute; top:4px; left:50%; transform:translateX(-50%); font-size:9px; font-weight:700; color:var(--sub); z-index:5; pointer-events:none; transition:color .15s; white-space:nowrap; }

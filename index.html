@@ -755,16 +755,19 @@ html,body {
 .auto-playing .wk.next .klbl.w  { animation:none; }
 .auto-playing .bk.next .klbl.b  { animation:none; }
 .auto-playing .fb-note.next     { animation:none; }
-/* Peek — next note preview */
+/* Peek — next note preview. Thickened + switched to white (was grey,
+   tuned per element -- 160/160/160 for piano, 200/200/200 for fretboard)
+   per Jason's ask for it to read clearly against any skin's backdrop,
+   not just the plainer ones grey happened to work on. */
 .wk.peek .klbl.w, .bk.peek .klbl.b {
-  outline:2px dashed rgba(160,160,160,0.7); outline-offset:3px;
+  outline:3px dashed rgba(255,255,255,0.95); outline-offset:3px;
   border-radius:50%;
 }
 .wk.peek-same .klbl.w, .bk.peek-same .klbl.b {
   width:1.75em; height:1.75em;
 }
 .fb-note.peek {
-  outline:2px dashed rgba(200,200,200,0.90); outline-offset:3px;
+  outline:3px dashed rgba(255,255,255,0.95); outline-offset:3px;
   border-radius:50%;
   background:rgba(255,255,255,0.18); color:rgba(0,0,0,0.55);
 }

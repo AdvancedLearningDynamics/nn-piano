@@ -1169,6 +1169,12 @@ function applySkin(id) {
   // why a song loaded before a skin switch looked wrong (stale widths)
   // until reselecting it forced loadSong() to rebuild from scratch.
   _buildPhraseRows();
+  // Self-corrects the same rebuild above once the skin's font (if newly
+  // needed, e.g. switching TO Neon City's Orbitron) actually finishes
+  // loading -- see _refreshLyricsWhenFontsReady()'s own comment for why
+  // the synchronous _buildPhraseRows() just above can size cells against
+  // the wrong (fallback) font on a slow enough device.
+  _refreshLyricsWhenFontsReady();
   // buildKeyboard() above threw away the old key elements and built fresh
   // ones, so whichever key was showing the "next note" glow lost it --
   // same staleness class as the two fixes above, just never caught here.
@@ -2313,6 +2319,30 @@ function _buildPhraseRows(){
   wrap.appendChild(_makePhrasRow(phrases[pi+1],'row-next',containerWidth));
   refreshNoteDisplay();
 }
+// Every call site above measures lyric cell widths via _lyricFont()'s canvas
+// probe *synchronously*, right after the skin (and its --font, e.g. Neon
+// City's Orbitron) just changed -- but a browser doesn't have a font ready
+// to measure with the instant a rule referencing it takes effect; it still
+// has to decode/register the @font-face, which is real (if normally brief)
+// work even for a base64-embedded font, not a network fetch wait. On a
+// slower mobile CPU that gap is wide enough to matter: canvas.measureText()
+// silently measures with whatever fallback font is active in the meantime,
+// sizing every cell for that narrower font, and then the *visible* text
+// swaps to the real (often wider) one once it finishes loading -- cells
+// end up too narrow for what's actually drawn, and the existing ellipsis
+// truncates it. Reported by Jason from a real iPhone on Neon City
+// specifically (Orbitron), after the *previous* truncation fix (a stale
+// canvas-measurement fallback constant, unrelated to font loading) was
+// already shipped -- a different bug with the same visible symptom.
+// document.fonts.ready resolves once every font requested up to that point
+// (including one just triggered by this exact skin change) has finished,
+// so rebuilding once more when it fires self-corrects any cells that were
+// sized against the wrong font in the meantime -- cheap to do again since
+// building phrase rows is already idempotent.
+function _refreshLyricsWhenFontsReady(){
+  if(!document.fonts||!document.fonts.ready)return;
+  document.fonts.ready.then(()=>{ if(S.song) _buildPhraseRows(); });
+}
 const CANDY_KEY_COLORS={
   'C':'#E85050','CsDf':'#5C2810','D':'#E87830','DsEf':'#4A2008',
   'E':'#E8D030','F':'#48C848','FsGf':'#3A1808','G':'#40C8D8',
@@ -2630,6 +2660,12 @@ document.getElementById('inst-sel').value='piano';
 applySkin(S.skin);
 buildOctSel();
 loadSong('happy-birthday');
+// Cold boot is the likeliest place to actually hit the font-loading race
+// _refreshLyricsWhenFontsReady() guards against (first paint, cold cache,
+// possibly a slower device) -- applySkin() above already schedules this
+// same check, but it fires before loadSong() sets S.song, so call it again
+// now that a song is actually loaded.
+_refreshLyricsWhenFontsReady();
 </script>
 </body>
 </html>

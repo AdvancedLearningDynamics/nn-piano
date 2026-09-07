@@ -759,9 +759,25 @@ html,body {
 
 .klbl   { font-family:var(--font); font-weight:700; pointer-events:none; line-height:1; text-align:center; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; transition:background .15s, box-shadow .15s; }
 .klbl.w { font-size:var(--key-font-wk,clamp(32px,7vh,48px)); color:var(--wk-lbl); font-weight:800; width:1.55em; height:1.55em; }
-.klbl.b { font-size:var(--key-font-bk,clamp(22px,5vh,34px)); color:var(--bk-lbl); font-weight:800; width:1.55em; height:1.55em; }
+/* Black-key label outline: idle-state labels (the "next" state already
+   gets a solid white background badge below, which is plenty readable
+   on its own) sit directly on the raw key art with no backing -- fine
+   against a flat CSS-gradient key, but skins with photographic bkImgs
+   art (Christmas's presents, Mayan's carved glyph, Candy's candy cane)
+   can put the label right over a busy/detailed area (a bow knot, a
+   glyph face) where a flat label color alone gets lost. An 8-direction
+   black outline (matching the .note-lyric technique) keeps it legible
+   regardless of what color the label sits on, without needing a
+   different --bk-lbl per skin. */
+.klbl.b {
+  font-size:var(--key-font-bk,clamp(22px,5vh,34px)); color:var(--bk-lbl); font-weight:800; width:1.55em; height:1.55em;
+  text-shadow:
+    -1.5px -1.5px 0 #000, 0 -1.5px 0 #000, 1.5px -1.5px 0 #000,
+    -1.5px  0    0 #000,                    1.5px  0    0 #000,
+    -1.5px  1.5px 0 #000, 0  1.5px 0 #000, 1.5px  1.5px 0 #000;
+}
 .wk.next .klbl.w { background:rgba(255,255,255,0.92); color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.25); animation:key-pulse 1.2s ease-in-out infinite; }
-.bk.next .klbl.b { background:rgba(255,255,255,0.88); color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.30); animation:key-pulse 1.2s ease-in-out infinite; }
+.bk.next .klbl.b { background:rgba(255,255,255,0.88); color:#111; text-shadow:none; box-shadow:0 2px 8px rgba(0,0,0,0.30); animation:key-pulse 1.2s ease-in-out infinite; }
 [data-skin="candy"] .wk.next .klbl.w,
 [data-skin="candy"] .bk.next .klbl.b { background:#fff; }
 .song-started .wk.next .klbl.w { animation:none; }

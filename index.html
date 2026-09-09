@@ -311,6 +311,19 @@ html,body {
     -2px  0   0 #000,                2px  0   0 #000,
     -2px  2px 0 #000, 0  2px 0 #000, 2px  2px 0 #000;
 }
+/* Chinese New Year: black lyric text (readable against both the deep-red
+   keys and the night backdrop) with an outline in the dragon's own
+   illuminated orange, sampled from its lit scales/flame ridge (#EA8E1E) --
+   !important on color to beat .note-cell.current .note-lyric's
+   color:var(--text) at equal-or-higher specificity (same reason Neon
+   Tech's pink override above uses !important). */
+[data-skin="cny"] .note-lyric {
+  color:#000 !important;
+  text-shadow:
+    -2px -2px 0 #EA8E1E, 0 -2px 0 #EA8E1E, 2px -2px 0 #EA8E1E,
+    -2px  0   0 #EA8E1E,                   2px  0   0 #EA8E1E,
+    -2px  2px 0 #EA8E1E, 0  2px 0 #EA8E1E, 2px  2px 0 #EA8E1E;
+}
 /* phone-mode: a phone is viewed from further away / at a smaller physical
    scale than a monitor -- there's a real legibility floor below which the
    note number and lyric stop being readable at a glance, so both get

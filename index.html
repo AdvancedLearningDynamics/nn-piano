@@ -304,21 +304,30 @@ html,body {
      wide-enough word (e.g. "cross"/"buns" even in the plain system font)
      to trigger. */
   font-family:var(--font); font-size:48px; font-weight:800; line-height:1; color:var(--text); text-align:center;
-  /* box-sizing:border-box + horizontal padding: text-shadow paints OUTSIDE
-     the glyph's own layout box -- it's a paint effect, not part of the box
+  /* box-sizing:border-box + padding: text-shadow paints OUTSIDE the
+     glyph's own layout box -- it's a paint effect, not part of the box
      model, so it never grows scrollWidth/clientWidth. With zero padding
      the glyph sat flush against this element's own edges (confirmed:
      scrollWidth===clientWidth exactly, no slack at all), so overflow:
      hidden below was clipping the outline itself once it got thick enough
      to notice -- the glyph text wasn't clipped, but its own outline was.
-     4px padding on each side reserves room for the ring to bleed into
-     without touching the box edge; border-box keeps max-width/the
+     Horizontal 4px matches the outer shadow ring exactly. Vertical is
+     bigger (16px) for a second, separate reason found by direct
+     measurement: line-height:1 makes the line box tighter than most of
+     these skins' fonts actually render -- the GLYPH ink itself (before
+     any shadow) already overflows this element's own top/bottom edge by
+     6-10px depending on font (worst measured: Christmas's "Mountains of
+     Christmas" at 10px), even with zero shadow. Add the 4px ring on top
+     of that and the real worst case is ~14px; 16px leaves comfortable
+     margin. (Nothing in the row/cell layout is tight enough for this to
+     matter -- phrase-row has plenty of unused height -- so there's no
+     reason to cut this close.) border-box keeps max-width/the
      JS-computed per-word width (see _lyricCellWidth) as the TOTAL
-     footprint including this padding, so it doesn't expand past what the
-     cell-collision math below already accounts for. scrollWidth/
-     clientWidth both include padding consistently, so _fitLyricFont's
-     shrink-to-fit comparison still works unchanged. */
-  box-sizing:border-box; padding:0 4px;
+     footprint including all this padding, so horizontal spacing still
+     doesn't expand past what the cell-collision math below accounts for;
+     scrollWidth/clientWidth include padding consistently on both axes, so
+     _fitLyricFont's shrink-to-fit comparison still works unchanged. */
+  box-sizing:border-box; padding:16px 4px;
   max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   /* Thickened from a 4-corner 1px outline, then a single 8-direction 2px
      ring, then a 3px+1.5px double ring -- users kept reporting lyrics

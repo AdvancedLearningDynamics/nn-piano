@@ -311,14 +311,14 @@ html,body {
      scrollWidth===clientWidth exactly, no slack at all), so overflow:
      hidden below was clipping the outline itself once it got thick enough
      to notice -- the glyph text wasn't clipped, but its own outline was.
-     Horizontal 4px matches the outer shadow ring exactly. Vertical is
-     bigger (16px) for a second, separate reason found by direct
+     Horizontal 8px matches the outer shadow ring exactly. Vertical is
+     bigger (22px) for a second, separate reason found by direct
      measurement: line-height:1 makes the line box tighter than most of
      these skins' fonts actually render -- the GLYPH ink itself (before
      any shadow) already overflows this element's own top/bottom edge by
      6-10px depending on font (worst measured: Christmas's "Mountains of
-     Christmas" at 10px), even with zero shadow. Add the 4px ring on top
-     of that and the real worst case is ~14px; 16px leaves comfortable
+     Christmas" at 10px), even with zero shadow. Add the 8px ring on top
+     of that and the real worst case is ~18px; 22px leaves comfortable
      margin. (Nothing in the row/cell layout is tight enough for this to
      matter -- phrase-row has plenty of unused height -- so there's no
      reason to cut this close.) border-box keeps max-width/the
@@ -327,20 +327,31 @@ html,body {
      doesn't expand past what the cell-collision math below accounts for;
      scrollWidth/clientWidth include padding consistently on both axes, so
      _fitLyricFont's shrink-to-fit comparison still works unchanged. */
-  box-sizing:border-box; padding:16px 4px;
+  box-sizing:border-box; padding:22px 8px;
   max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   /* Thickened from a 4-corner 1px outline, then a single 8-direction 2px
-     ring, then a 3px+1.5px double ring -- users kept reporting lyrics
-     hard to read against the busier skin backdrops. Two concentric
-     8-direction rings (4px + 2px) fill the gaps a single ring at this
-     radius still leaves along the flat edges, giving a solid halo instead
-     of a thin outline -- same double-ring technique used for the
-     black-key labels (see .klbl.b) after the same complaint there.
-     Checked every song's widest lyric words for cell-to-cell collision
-     before locking this size in -- worst case (Old MacDonald's
-     "Mac-"/"Don-") still has clear space at the wider .phrase-row gap
-     (see that rule). */
+     ring, then a 3px+1.5px double ring, then 4px+2px -- users kept
+     reporting lyrics hard to read against the busier skin backdrops.
+     Latest ask was explicitly "twice as thick, overlap/fill-in is fine",
+     so this doubled the outer reach (4px->8px) AND switched from 2 rings
+     to 4 (8/6/4/2px) rather than just doubling both existing rings --
+     each ring is only 8 discrete direction-copies of the glyph, not a
+     true circle, and the gap between rings widens as the radii grow, so
+     two rings alone (8px+4px) would leave visible thin gaps between them
+     at this bigger radius. Four rings at 2px spacing keep the coverage
+     solid/gap-free at the new thickness. Same technique used for the
+     black-key labels (see .klbl.b) after the same complaint there, just
+     with more rings here since the reach is bigger. Checked every song's
+     widest lyric words for cell-to-cell collision before locking this
+     size in -- worst case (Old MacDonald's "Mac-"/"Don-") still has clear
+     space at the wider .phrase-row gap (see that rule). */
   text-shadow:
+    -8px -8px 0 #fff, 0 -8px 0 #fff, 8px -8px 0 #fff,
+    -8px  0   0 #fff,                8px  0   0 #fff,
+    -8px  8px 0 #fff, 0  8px 0 #fff, 8px  8px 0 #fff,
+    -6px -6px 0 #fff, 0 -6px 0 #fff, 6px -6px 0 #fff,
+    -6px  0   0 #fff,                6px  0   0 #fff,
+    -6px  6px 0 #fff, 0  6px 0 #fff, 6px  6px 0 #fff,
     -4px -4px 0 #fff, 0 -4px 0 #fff, 4px -4px 0 #fff,
     -4px  0   0 #fff,                4px  0   0 #fff,
     -4px  4px 0 #fff, 0  4px 0 #fff, 4px  4px 0 #fff,
@@ -356,6 +367,12 @@ html,body {
 [data-skin="mayan"] .note-lyric,
 [data-skin="pub"] .note-lyric {
   text-shadow:
+    -8px -8px 0 #000, 0 -8px 0 #000, 8px -8px 0 #000,
+    -8px  0   0 #000,                8px  0   0 #000,
+    -8px  8px 0 #000, 0  8px 0 #000, 8px  8px 0 #000,
+    -6px -6px 0 #000, 0 -6px 0 #000, 6px -6px 0 #000,
+    -6px  0   0 #000,                6px  0   0 #000,
+    -6px  6px 0 #000, 0  6px 0 #000, 6px  6px 0 #000,
     -4px -4px 0 #000, 0 -4px 0 #000, 4px -4px 0 #000,
     -4px  0   0 #000,                4px  0   0 #000,
     -4px  4px 0 #000, 0  4px 0 #000, 4px  4px 0 #000,
@@ -372,6 +389,12 @@ html,body {
 [data-skin="cny"] .note-lyric {
   color:#000 !important;
   text-shadow:
+    -8px -8px 0 #EA8E1E, 0 -8px 0 #EA8E1E, 8px -8px 0 #EA8E1E,
+    -8px  0   0 #EA8E1E,                   8px  0   0 #EA8E1E,
+    -8px  8px 0 #EA8E1E, 0  8px 0 #EA8E1E, 8px  8px 0 #EA8E1E,
+    -6px -6px 0 #EA8E1E, 0 -6px 0 #EA8E1E, 6px -6px 0 #EA8E1E,
+    -6px  0   0 #EA8E1E,                   6px  0   0 #EA8E1E,
+    -6px  6px 0 #EA8E1E, 0  6px 0 #EA8E1E, 6px  6px 0 #EA8E1E,
     -4px -4px 0 #EA8E1E, 0 -4px 0 #EA8E1E, 4px -4px 0 #EA8E1E,
     -4px  0   0 #EA8E1E,                   4px  0   0 #EA8E1E,
     -4px  4px 0 #EA8E1E, 0  4px 0 #EA8E1E, 4px  4px 0 #EA8E1E,

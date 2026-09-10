@@ -265,7 +265,13 @@ html,body {
 
 .note-cell {
   flex-shrink:0; width:58px;
-  display:flex; flex-direction:column; align-items:center; gap:6px;
+  /* gap bumped 6px->10px: with the thicker lyric outline (see .note-lyric)
+     the number bubble and the lyric below it were reading as one crowded
+     unit against busy backdrops -- more air between them keeps each
+     legible on its own. .phrase-row's height:75% + overflow:hidden has
+     plenty of margin above this pair's total height even at the bigger
+     phone-mode bubble/font sizes, so this doesn't reintroduce clipping. */
+  display:flex; flex-direction:column; align-items:center; gap:10px;
   transition:opacity .18s;
 }
 .note-cell.played   { opacity:0.35; }
@@ -296,17 +302,24 @@ html,body {
      to trigger. */
   font-family:var(--font); font-size:48px; font-weight:800; line-height:1; color:var(--text); text-align:center;
   max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  /* Thickened from a 4-corner 1px outline -- users reported lyrics were
-     hard to read against the busier skin backdrops. 8-direction at 2px
-     gives a fuller, smoother stroke (4 corners alone leave visible gaps
-     along the flat edges at this font-weight). Checked every song's
+  /* Thickened from a 4-corner 1px outline, then again from a single
+     8-direction 2px ring -- users kept reporting lyrics hard to read
+     against the busier skin backdrops, so this needed more than a
+     thicker line, it needed a solid backing. Two concentric 8-direction
+     rings (3px + 1.5px) fill the gaps a single ring at this radius still
+     leaves along the flat edges, giving a solid halo instead of a thin
+     outline -- same double-ring technique used for the black-key labels
+     (see .klbl.b) after the same complaint there. Checked every song's
      widest lyric words for cell-to-cell collision before locking this
      size in -- worst case (Old MacDonald's "Mac-"/"Don-") still has a
      16px gap, comfortably clear. */
   text-shadow:
-    -2px -2px 0 #fff, 0 -2px 0 #fff, 2px -2px 0 #fff,
-    -2px  0   0 #fff,                2px  0   0 #fff,
-    -2px  2px 0 #fff, 0  2px 0 #fff, 2px  2px 0 #fff;
+    -3px -3px 0 #fff, 0 -3px 0 #fff, 3px -3px 0 #fff,
+    -3px  0   0 #fff,                3px  0   0 #fff,
+    -3px  3px 0 #fff, 0  3px 0 #fff, 3px  3px 0 #fff,
+    -1.5px -1.5px 0 #fff, 0 -1.5px 0 #fff, 1.5px -1.5px 0 #fff,
+    -1.5px  0    0 #fff,                   1.5px  0    0 #fff,
+    -1.5px  1.5px 0 #fff, 0  1.5px 0 #fff, 1.5px  1.5px 0 #fff;
 }
 .note-cell.current .note-lyric { color:var(--text); }
 /* Neon Tech's white lyric outline is nearly invisible against its own light
@@ -316,9 +329,12 @@ html,body {
 [data-skin="mayan"] .note-lyric,
 [data-skin="pub"] .note-lyric {
   text-shadow:
-    -2px -2px 0 #000, 0 -2px 0 #000, 2px -2px 0 #000,
-    -2px  0   0 #000,                2px  0   0 #000,
-    -2px  2px 0 #000, 0  2px 0 #000, 2px  2px 0 #000;
+    -3px -3px 0 #000, 0 -3px 0 #000, 3px -3px 0 #000,
+    -3px  0   0 #000,                3px  0   0 #000,
+    -3px  3px 0 #000, 0  3px 0 #000, 3px  3px 0 #000,
+    -1.5px -1.5px 0 #000, 0 -1.5px 0 #000, 1.5px -1.5px 0 #000,
+    -1.5px  0    0 #000,                   1.5px  0    0 #000,
+    -1.5px  1.5px 0 #000, 0  1.5px 0 #000, 1.5px  1.5px 0 #000;
 }
 /* Chinese New Year: black lyric text (readable against both the deep-red
    keys and the night backdrop) with an outline in the dragon's own
@@ -329,9 +345,12 @@ html,body {
 [data-skin="cny"] .note-lyric {
   color:#000 !important;
   text-shadow:
-    -2px -2px 0 #EA8E1E, 0 -2px 0 #EA8E1E, 2px -2px 0 #EA8E1E,
-    -2px  0   0 #EA8E1E,                   2px  0   0 #EA8E1E,
-    -2px  2px 0 #EA8E1E, 0  2px 0 #EA8E1E, 2px  2px 0 #EA8E1E;
+    -3px -3px 0 #EA8E1E, 0 -3px 0 #EA8E1E, 3px -3px 0 #EA8E1E,
+    -3px  0   0 #EA8E1E,                   3px  0   0 #EA8E1E,
+    -3px  3px 0 #EA8E1E, 0  3px 0 #EA8E1E, 3px  3px 0 #EA8E1E,
+    -1.5px -1.5px 0 #EA8E1E, 0 -1.5px 0 #EA8E1E, 1.5px -1.5px 0 #EA8E1E,
+    -1.5px  0    0 #EA8E1E,                      1.5px  0    0 #EA8E1E,
+    -1.5px  1.5px 0 #EA8E1E, 0  1.5px 0 #EA8E1E, 1.5px  1.5px 0 #EA8E1E;
   filter:url(#cny-brush);
 }
 /* phone-mode: a phone is viewed from further away / at a smaller physical
@@ -498,9 +517,18 @@ html,body {
 @keyframes tech-truck-drive {
   /* distances measured off --tech-panel-w (see updateTechDecorSize()) so
      this starts exactly off the right edge and ends exactly off the left
-     edge, matching the old left:100%->left:-100% distances exactly. */
-  from { transform:translateX(var(--tech-panel-w,1400px)); }
-  to   { transform:translateX(calc(-1 * var(--tech-decor-w,140px))); }
+     edge, matching the old left:100%->left:-100% distances exactly.
+     rotate(-5deg): the source art's front wheel sits noticeably higher
+     than the rear wheels -- nose-up/tail-down, not flat. Jason asked for
+     a 5deg CLOCKWISE correction, but rendering both directions and
+     checking wheel position against a level reference line showed
+     clockwise pushes the front even higher and drops the rear further
+     (makes the tilt worse); counter-clockwise is what actually brings
+     both ends to a consistent, level height. A constant tilt (same value
+     at both keyframes, so it doesn't change over the drive) levels it
+     out visually. */
+  from { transform:translateX(var(--tech-panel-w,1400px)) rotate(-5deg); }
+  to   { transform:translateX(calc(-1 * var(--tech-decor-w,140px))) rotate(-5deg); }
 }
 .tech-ship {
   display:none; position:absolute; z-index:4; pointer-events:none;
@@ -2390,6 +2418,55 @@ function _lyricCellWidth(lyric,containerWidth){
   const ceiling=Math.max(noteCellMin(),(containerWidth||1280)-32);
   return Math.max(noteCellMin(),Math.min(needed,ceiling));
 }
+// Final DOM-level safety net: shrink a lyric's font-size (never truncate
+// the string) until it actually fits the box it's rendered in. Unlike
+// _lyricCellWidth above -- which pre-measures via an offscreen canvas
+// probe and has a documented history of going wrong (iframe hosting
+// contexts returning blank computed styles, the real font not finishing
+// its @font-face swap-in before the measurement runs, stale fallback
+// constants -- see the long comment on _lyricFont() above) -- this checks
+// the ACTUAL rendered element post-layout, so it's immune to all of that:
+// it doesn't care why scrollWidth might exceed clientWidth, only that it
+// does, and corrects for it directly. This is also what covers guitar/
+// bass and phone-mode, whose lyric width comes from fixed CSS
+// (--gb-size/--gl-fs, or the phone-mode 84px rule) rather than
+// _lyricCellWidth's dynamic per-word measurement at all.
+// overflow:hidden/text-overflow:ellipsis stay on .note-lyric in CSS as an
+// absolute last resort, but shrinking down to _LYRIC_MIN_SCALE first
+// should make them unreachable outside a truly pathological case (a
+// single "word" still wider than the row even at floor size).
+// Floor tested directly against this app's own worst case -- guitar/bass
+// in phone-mode, whose lyric box is a fixed 50px (--gb-size) with no
+// dynamic per-word measurement at all (see _makePhrasRow's `dynamic`
+// flag) -- and 0.55 (Jason's "shrink, don't clip" instruction prompted
+// trying a conservative floor first) still left "Mac-"/"Don-"/"farm"
+// clipped in Old MacDonald. Lowered until that specific case actually
+// stopped clipping.
+const _LYRIC_MIN_SCALE=0.30;
+function _fitLyricFont(el){
+  if(!el||!el.textContent)return;
+  el.style.removeProperty('font-size'); // reset to the CSS cascade value before measuring
+  const baseFs=parseFloat(getComputedStyle(el).fontSize);
+  if(!baseFs)return;
+  const minFs=Math.max(8,Math.round(baseFs*_LYRIC_MIN_SCALE));
+  let fs=baseFs;
+  while(el.scrollWidth>el.clientWidth+1 && fs>minFs){
+    fs-=1;
+    // setProperty(...,'important'): .phone-mode .note-lyric sets font-size
+    // with !important (so phone legibility always wins over any other
+    // skin/mode rule -- see that rule's own comment), which silently
+    // ignores a plain el.style.fontSize=... assignment. An inline
+    // !important always outranks a stylesheet !important regardless of
+    // selector, so this is the only way this function's shrink can
+    // actually take effect in phone-mode. Confirmed needed: without it,
+    // phone-mode + guitar/bass (whose lyric width is a fixed CSS var, not
+    // measured at all) silently stayed clipped at the forced 50px.
+    el.style.setProperty('font-size',fs+'px','important');
+  }
+}
+function _fitAllLyrics(container){
+  container.querySelectorAll('.note-lyric').forEach(_fitLyricFont);
+}
 
 function _makePhrasRow(phrase,cls,containerWidth){
   const row=document.createElement('div');
@@ -2422,6 +2499,10 @@ function _buildPhraseRows(){
   const containerWidth=wrap.clientWidth||wrap.getBoundingClientRect().width||1280;
   wrap.appendChild(_makePhrasRow(phrases[pi],'row-current',containerWidth));
   wrap.appendChild(_makePhrasRow(phrases[pi+1],'row-next',containerWidth));
+  // Must run after both rows are actually attached to `wrap` (and so to the
+  // live document) -- scrollWidth/clientWidth on a detached element are
+  // meaningless, which is why this isn't inside _makePhrasRow itself.
+  _fitAllLyrics(wrap);
   refreshNoteDisplay();
 }
 // Every call site above measures lyric cell widths via _lyricFont()'s canvas

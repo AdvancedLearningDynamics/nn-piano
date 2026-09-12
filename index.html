@@ -257,13 +257,27 @@ html,body {
 }
 .phrase-row {
   position:absolute; left:0; top:0; width:100%; height:75%;
+  overflow:hidden;
+  transition:transform .38s cubic-bezier(.35,0,.2,1), opacity .25s;
+  will-change:transform;
+}
+/* Actual cell content lives in this inner wrapper, not .phrase-row itself,
+   so a row-fit scale transform (see _fitRowToViewport()) has a place to
+   apply that doesn't collide with .phrase-row's own translateY transform
+   (used for the row-current/row-next/row-exit slide animation below --
+   transform is not additive across an element and its own animation, so
+   they need separate elements). scrollWidth measured on THIS element
+   (not .phrase-row, which stays overflow:hidden and 100% wide regardless
+   of content) is what tells _fitRowToViewport whether the row's natural
+   content is wider than the visible area. */
+.phrase-row-cells {
+  display:flex; align-items:center; justify-content:center;
   /* gap 10px->18px: more air between cells now that the lyric outline
      below is thicker (see .note-lyric) -- avoids two adjacent cells'
      outlines ever reading as touching. */
-  display:flex; align-items:center; justify-content:center; gap:18px;
-  padding:0 16px; box-sizing:border-box; overflow:hidden;
-  transition:transform .38s cubic-bezier(.35,0,.2,1), opacity .25s;
-  will-change:transform;
+  gap:18px;
+  width:100%; height:100%; padding:0 16px; box-sizing:border-box;
+  transform-origin:center center;
 }
 .phrase-row.row-current { transform:translateY(0);     opacity:1; }
 .phrase-row.row-next    { transform:translateY(100%);  opacity:0.28; pointer-events:none; }
@@ -730,25 +744,205 @@ html,body {
     1.90px -0.62px 0 #EA8E1E;
   filter:url(#cny-brush);
 }
+/* Phone-mode outline: the ring radii above (up to 12px) are a fixed
+   absolute size, sized for the ~56px desktop font -- applied unscaled to
+   a much smaller phone font, a 12px ring is not a thin accent anymore,
+   it's bigger than the letters themselves, and the padding reserved for
+   it (28px/12px) dominates a phone cell's needed width far more than it
+   does on desktop (see _lyricCellWidth's own comment). Rather than
+   shrink the phone font down to something barely legible just to make
+   room for a desktop-proportioned ring, phone gets its own proportionally
+   smaller ring (4/3/2/1px, roughly matching the ~55% font-size ratio)
+   and matching smaller padding. Specificity note: .phone-mode combined
+   with [data-skin=...] on the same (root) element, then descending to
+   .note-lyric, gives (0,3,0) -- one class higher than the desktop skin
+   rules above ([data-skin=...] .note-lyric, also (0,2,0) via the
+   attribute selector) and the base .phone-mode .note-lyric rule below
+   (also (0,2,0)) -- so these reliably win over both regardless of
+   source order, the same clash the font-size !important two rules up
+   already has to deal with. */
+.phone-mode .note-lyric {
+  padding:10px 5px;
+  text-shadow:
+    4.00px 0.00px 0 #fff,
+    3.46px 2.00px 0 #fff,
+    2.00px 3.46px 0 #fff,
+    0.00px 4.00px 0 #fff,
+    -2.00px 3.46px 0 #fff,
+    -3.46px 2.00px 0 #fff,
+    -4.00px 0.00px 0 #fff,
+    -3.46px -2.00px 0 #fff,
+    -2.00px -3.46px 0 #fff,
+    0.00px -4.00px 0 #fff,
+    2.00px -3.46px 0 #fff,
+    3.46px -2.00px 0 #fff,
+    3.00px 0.00px 0 #fff,
+    2.60px 1.50px 0 #fff,
+    1.50px 2.60px 0 #fff,
+    0.00px 3.00px 0 #fff,
+    -1.50px 2.60px 0 #fff,
+    -2.60px 1.50px 0 #fff,
+    -3.00px 0.00px 0 #fff,
+    -2.60px -1.50px 0 #fff,
+    -1.50px -2.60px 0 #fff,
+    0.00px -3.00px 0 #fff,
+    1.50px -2.60px 0 #fff,
+    2.60px -1.50px 0 #fff,
+    2.00px 0.00px 0 #fff,
+    1.73px 1.00px 0 #fff,
+    1.00px 1.73px 0 #fff,
+    0.00px 2.00px 0 #fff,
+    -1.00px 1.73px 0 #fff,
+    -1.73px 1.00px 0 #fff,
+    -2.00px 0.00px 0 #fff,
+    -1.73px -1.00px 0 #fff,
+    -1.00px -1.73px 0 #fff,
+    0.00px -2.00px 0 #fff,
+    1.00px -1.73px 0 #fff,
+    1.73px -1.00px 0 #fff,
+    1.00px 0.00px 0 #fff,
+    0.87px 0.50px 0 #fff,
+    0.50px 0.87px 0 #fff,
+    0.00px 1.00px 0 #fff,
+    -0.50px 0.87px 0 #fff,
+    -0.87px 0.50px 0 #fff,
+    -1.00px 0.00px 0 #fff,
+    -0.87px -0.50px 0 #fff,
+    -0.50px -0.87px 0 #fff,
+    0.00px -1.00px 0 #fff,
+    0.50px -0.87px 0 #fff,
+    0.87px -0.50px 0 #fff;
+}
+.phone-mode[data-skin="tech"] .note-lyric,
+.phone-mode[data-skin="christmas"] .note-lyric,
+.phone-mode[data-skin="mayan"] .note-lyric,
+.phone-mode[data-skin="pub"] .note-lyric {
+  text-shadow:
+    4.00px 0.00px 0 #000,
+    3.46px 2.00px 0 #000,
+    2.00px 3.46px 0 #000,
+    0.00px 4.00px 0 #000,
+    -2.00px 3.46px 0 #000,
+    -3.46px 2.00px 0 #000,
+    -4.00px 0.00px 0 #000,
+    -3.46px -2.00px 0 #000,
+    -2.00px -3.46px 0 #000,
+    0.00px -4.00px 0 #000,
+    2.00px -3.46px 0 #000,
+    3.46px -2.00px 0 #000,
+    3.00px 0.00px 0 #000,
+    2.60px 1.50px 0 #000,
+    1.50px 2.60px 0 #000,
+    0.00px 3.00px 0 #000,
+    -1.50px 2.60px 0 #000,
+    -2.60px 1.50px 0 #000,
+    -3.00px 0.00px 0 #000,
+    -2.60px -1.50px 0 #000,
+    -1.50px -2.60px 0 #000,
+    0.00px -3.00px 0 #000,
+    1.50px -2.60px 0 #000,
+    2.60px -1.50px 0 #000,
+    2.00px 0.00px 0 #000,
+    1.73px 1.00px 0 #000,
+    1.00px 1.73px 0 #000,
+    0.00px 2.00px 0 #000,
+    -1.00px 1.73px 0 #000,
+    -1.73px 1.00px 0 #000,
+    -2.00px 0.00px 0 #000,
+    -1.73px -1.00px 0 #000,
+    -1.00px -1.73px 0 #000,
+    0.00px -2.00px 0 #000,
+    1.00px -1.73px 0 #000,
+    1.73px -1.00px 0 #000,
+    1.00px 0.00px 0 #000,
+    0.87px 0.50px 0 #000,
+    0.50px 0.87px 0 #000,
+    0.00px 1.00px 0 #000,
+    -0.50px 0.87px 0 #000,
+    -0.87px 0.50px 0 #000,
+    -1.00px 0.00px 0 #000,
+    -0.87px -0.50px 0 #000,
+    -0.50px -0.87px 0 #000,
+    0.00px -1.00px 0 #000,
+    0.50px -0.87px 0 #000,
+    0.87px -0.50px 0 #000;
+}
+.phone-mode[data-skin="cny"] .note-lyric {
+  color:#000 !important;
+  padding:10px 5px;
+  text-shadow:
+    4.00px 0.00px 0 #EA8E1E,
+    3.46px 2.00px 0 #EA8E1E,
+    2.00px 3.46px 0 #EA8E1E,
+    0.00px 4.00px 0 #EA8E1E,
+    -2.00px 3.46px 0 #EA8E1E,
+    -3.46px 2.00px 0 #EA8E1E,
+    -4.00px 0.00px 0 #EA8E1E,
+    -3.46px -2.00px 0 #EA8E1E,
+    -2.00px -3.46px 0 #EA8E1E,
+    0.00px -4.00px 0 #EA8E1E,
+    2.00px -3.46px 0 #EA8E1E,
+    3.46px -2.00px 0 #EA8E1E,
+    3.00px 0.00px 0 #EA8E1E,
+    2.60px 1.50px 0 #EA8E1E,
+    1.50px 2.60px 0 #EA8E1E,
+    0.00px 3.00px 0 #EA8E1E,
+    -1.50px 2.60px 0 #EA8E1E,
+    -2.60px 1.50px 0 #EA8E1E,
+    -3.00px 0.00px 0 #EA8E1E,
+    -2.60px -1.50px 0 #EA8E1E,
+    -1.50px -2.60px 0 #EA8E1E,
+    0.00px -3.00px 0 #EA8E1E,
+    1.50px -2.60px 0 #EA8E1E,
+    2.60px -1.50px 0 #EA8E1E,
+    2.00px 0.00px 0 #EA8E1E,
+    1.73px 1.00px 0 #EA8E1E,
+    1.00px 1.73px 0 #EA8E1E,
+    0.00px 2.00px 0 #EA8E1E,
+    -1.00px 1.73px 0 #EA8E1E,
+    -1.73px 1.00px 0 #EA8E1E,
+    -2.00px 0.00px 0 #EA8E1E,
+    -1.73px -1.00px 0 #EA8E1E,
+    -1.00px -1.73px 0 #EA8E1E,
+    0.00px -2.00px 0 #EA8E1E,
+    1.00px -1.73px 0 #EA8E1E,
+    1.73px -1.00px 0 #EA8E1E,
+    1.00px 0.00px 0 #EA8E1E,
+    0.87px 0.50px 0 #EA8E1E,
+    0.50px 0.87px 0 #EA8E1E,
+    0.00px 1.00px 0 #EA8E1E,
+    -0.50px 0.87px 0 #EA8E1E,
+    -0.87px 0.50px 0 #EA8E1E,
+    -1.00px 0.00px 0 #EA8E1E,
+    -0.87px -0.50px 0 #EA8E1E,
+    -0.50px -0.87px 0 #EA8E1E,
+    0.00px -1.00px 0 #EA8E1E,
+    0.50px -0.87px 0 #EA8E1E,
+    0.87px -0.50px 0 #EA8E1E;
+  filter:url(#cny-brush);
+}
 /* phone-mode: a phone is viewed from further away / at a smaller physical
    scale than a monitor -- there's a real legibility floor below which the
    note number and lyric stop being readable at a glance, so both get
    bigger rather than just scaling down with everything else. !important
    because the skin-specific font-size rules above share this same
    selector specificity and phone-mode has to win regardless of skin. */
-.phone-mode .note-bubble { width:32px; height:32px; font-size:21px !important; }
-.phone-mode .note-lyric { font-size:21px !important; max-width:46px; }
-/* Phone phrases can legitimately have 6-7+ notes in one row (e.g. Old
-   MacDonald), and at the old bigger phone sizes (64px bubble/58px font)
-   a 7-note row measured ~790px of actual content against a 375px-wide
-   real phone viewport -- over double, with cells shoved far outside the
-   visible area on both edges. Verified directly against that exact
-   7-note phrase at a real 375px viewport: bubble/font this size (24px,
-   down from 58px) plus the tighter gap/padding below brings the row's
-   total content width comfortably inside the visible area with margin
-   on both edges. Still backed by the same shrink-to-fit safety net
-   (_fitLyricFont) for any individual long word. */
-.phone-mode .phrase-row { gap:6px; padding:0 20px; }
+.phone-mode .note-bubble { width:40px; height:40px; font-size:27px !important; }
+.phone-mode .note-lyric { font-size:34px !important; max-width:74px; }
+/* This is a comfortable TYPICAL-phrase size, not tuned to survive the
+   worst-case phrase in the song library -- a fixed phone constant can't
+   be both "as large as possible" for a short phrase (Happy Birthday, 6
+   short words) and safe for a long one (Old MacDonald, 7 notes
+   including "Mac-"/"Don-"/"farm") at the same time; the same math that
+   made short phrases look small enough to satisfy the long one measured
+   out to an ~11px font, illegible for an app that's supposed to teach
+   beginners. _fitRowToViewport() (below _buildPhraseRows) is the actual
+   fix: it measures each row's real total content width AFTER this
+   baseline renders and only scales the whole row down, uniformly, when
+   that specific phrase doesn't fit -- so a short phrase stays at this
+   full size and a long one shrinks only as much as it actually needs to,
+   never more. */
+.phone-mode .phrase-row-cells { gap:10px; padding:0 20px; }
 
 
 .status { position:absolute; top:4px; left:50%; transform:translateX(-50%); font-size:9px; font-weight:700; color:var(--sub); z-index:5; pointer-events:none; transition:color .15s; white-space:nowrap; }
@@ -2751,8 +2945,23 @@ function buildNoteDisplay(){
 // else stays at default spacing, and the wider cell simply pushes the
 // following cells to the right (normal flex flow), rather than shrinking
 // every cell in the row to a shared budget.
-function noteCellMin(){ return document.documentElement.classList.contains('phone-mode') ? 36 : 64; }
+function noteCellMin(){ return document.documentElement.classList.contains('phone-mode') ? 46 : 64; }
 let _lyricMeasureCtx=null;
+// Real .note-lyric horizontal padding (12px each side currently, reserved
+// for the text-shadow outline to bleed into -- see that rule's own
+// comment), read from the SAME probe _lyricFont() already builds below
+// rather than a second hardcoded constant. _lyricCellWidth() needs this:
+// without it, the cell (and the lyric's own max-width, which is set to
+// the same value) was sized to fit the bare glyph width with no allowance
+// for the padding subtracted from it by border-box -- so the text
+// immediately overflowed its own padded content area at full size, and
+// _fitLyricFont's shrink-to-fit kicked in for nearly every word, even on
+// a normal desktop-width screen. Confirmed directly: every word in a
+// six-note phrase measured 38-48px instead of the 56px base with zero
+// width constraint in play -- this read as "the font got smaller
+// everywhere," not just a phone-specific change, which is exactly the
+// bug it was.
+let _lyricPadX=0;
 function _lyricFont(){
   // Measured synchronously (append -> read -> remove, no yield to the event
   // loop in between) so it never actually paints -- no need for
@@ -2789,19 +2998,23 @@ function _lyricFont(){
     ok=parseFloat(cs.fontSize)>0 && !!cs.fontFamily;
   }
   const font=ok?`${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`:'';
+  // Same probe, same trip: grab the real padding-left/right too (see
+  // _lyricPadX's own comment above) instead of a second hardcoded
+  // constant that could quietly drift out of sync with the CSS rule.
+  _lyricPadX=ok?((parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0)):24;
   document.body.removeChild(probe);
   if(ok)return font;
   const fam=getComputedStyle(document.documentElement).getPropertyValue('--font').trim()
     || "system-ui,-apple-system,'Segoe UI',sans-serif";
   const phone=document.documentElement.classList.contains('phone-mode');
-  const fs=phone ? '21px' : (document.documentElement.dataset.skin==='tech' ? '44px' : '56px');
+  const fs=phone ? '34px' : (document.documentElement.dataset.skin==='tech' ? '44px' : '56px');
   return `800 ${fs} ${fam}`;
 }
 function _lyricCellWidth(lyric,containerWidth){
   if(!lyric)return noteCellMin();
   if(!_lyricMeasureCtx)_lyricMeasureCtx=document.createElement('canvas').getContext('2d');
-  _lyricMeasureCtx.font=_lyricFont();
-  const needed=_lyricMeasureCtx.measureText(lyric).width+6;
+  _lyricMeasureCtx.font=_lyricFont(); // also refreshes _lyricPadX as a side effect
+  const needed=_lyricMeasureCtx.measureText(lyric).width+6+_lyricPadX;
   // Safety ceiling only -- prevents one pathological word from blowing past
   // the visible row entirely; ordinary words never get near this.
   const ceiling=Math.max(noteCellMin(),(containerWidth||1280)-32);
@@ -2888,6 +3101,8 @@ function _fitAllLyrics(container){
 function _makePhrasRow(phrase,cls,containerWidth){
   const row=document.createElement('div');
   row.className='phrase-row '+cls;
+  const inner=document.createElement('div');
+  inner.className='phrase-row-cells';
   if(phrase){
     // Guitar/bass size this row via their own --gb-size/--gl-fs CSS vars
     // (tuned for the shorter fretboard-mode top strip) -- leave those alone.
@@ -2901,10 +3116,52 @@ function _makePhrasRow(phrase,cls,containerWidth){
       const bub=document.createElement('div');bub.className='note-bubble';bub.id='nb-'+note._idx;
       bub.textContent=noteLabel(note,S.letters);
       const lyr=document.createElement('div');lyr.className='note-lyric';if(dynamic)lyr.style.maxWidth=w+'px';lyr.textContent=note.lyric||'';
-      cell.appendChild(bub);cell.appendChild(lyr);row.appendChild(cell);
+      cell.appendChild(bub);cell.appendChild(lyr);inner.appendChild(cell);
     });
   }
+  row.appendChild(inner);
   return row;
+}
+// Scales an entire row's cell cluster down as one unit, uniformly, only
+// when its natural (already-fitted) content is wider than what's actually
+// visible -- separate concern from _fitLyricFont above, which only makes
+// sure ONE lyric's own text fits ITS OWN cell. A phrase can have anywhere
+// from 1 to 7+ notes, and a fixed phone-mode font size big enough to look
+// good on a short phrase (Happy Birthday) will overflow a long one (Old
+// MacDonald) -- and shrinking the fixed size down until the long one fits
+// makes every short phrase needlessly tiny too (measured out to an ~11px
+// font when tuned that way -- illegible). Scaling the whole cluster
+// (bubbles + lyrics + gaps together, as one transform) keeps every
+// element's relative proportions intact, unlike trying to recompute each
+// cell's own font-size/bubble-size/width individually to hit a shared
+// budget. transform-origin:center on .phrase-row-cells (not .phrase-row
+// itself, which owns the row-current/row-next/row-exit slide animation's
+// own transform -- the two can't share one element) is what keeps it
+// centered as it shrinks.
+function _fitRowToViewport(row,wrap){
+  const inner=row.querySelector('.phrase-row-cells');
+  if(!inner||!inner.children.length)return;
+  inner.style.transform=''; // reset before measuring natural width
+  // scrollWidth is unusable here: .phrase-row-cells uses justify-content:center
+  // with overflow:visible, so overflowing content bleeds out BOTH sides equally,
+  // but scrollWidth only ever measures from the container's own left edge (0) to
+  // the rightmost content edge -- it silently ignores anything that overflows to
+  // the left of that origin. Measuring the actual first/last cell edges instead
+  // captures the true natural span regardless of which side(s) it overflows.
+  const kids=inner.children;
+  const firstRect=kids[0].getBoundingClientRect();
+  const lastRect=kids[kids.length-1].getBoundingClientRect();
+  const natural=lastRect.right-firstRect.left;
+  // .phrase-row-cells' own padding:0 20px only creates a visual gap when
+  // content already fits inside it -- once content is wide enough to
+  // overflow, justify-content:center bleeds it past the padding symmetrically,
+  // so the padding does nothing to guarantee edge spacing. Reserve the gap
+  // explicitly here instead so a scaled-down row always keeps a margin.
+  const edgeGap=16;
+  const available=wrap.clientWidth-edgeGap*2;
+  if(!available||natural<=available+1)return; // already fits, leave at full size
+  const ratio=Math.max(0.35,available/natural);
+  inner.style.transform=`scale(${ratio})`;
 }
 
 function _buildPhraseRows(){
@@ -2920,6 +3177,11 @@ function _buildPhraseRows(){
   // live document) -- scrollWidth/clientWidth on a detached element are
   // meaningless, which is why this isn't inside _makePhrasRow itself.
   _fitAllLyrics(wrap);
+  // Row-level fit runs AFTER per-cell fitting, not before/instead of it --
+  // it needs to measure the row's natural width post-shrink (a long word
+  // may already be smaller than its cell's base font), then only scales
+  // the row down further if the whole cluster together still doesn't fit.
+  wrap.querySelectorAll('.phrase-row').forEach(row=>_fitRowToViewport(row,wrap));
   refreshNoteDisplay();
 }
 // Every call site above measures lyric cell widths via _lyricFont()'s canvas

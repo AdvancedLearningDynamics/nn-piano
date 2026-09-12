@@ -3518,6 +3518,22 @@ document.getElementById('inst-sel').value='piano';
     document.documentElement.style.setProperty('--gb-fs',fs+'px');
     document.documentElement.style.setProperty('--gl-fs',lfs+'px');
     document.documentElement.style.setProperty('--gl-size',glw+'px');
+    // Guitar/bass phrase rows were already built (at page load, or on an
+    // instrument switch) using whatever --gl-size/--gl-fs happened to be in
+    // effect at that synchronous moment -- which, on the very first resize,
+    // is the CSS fallback default (65px/18px), not this observer's real
+    // computed value, since ResizeObserver's first delivery is inherently
+    // async (fires on a later frame, after the build already ran). Nothing
+    // else re-triggers a re-fit once the real value lands, so a phrase built
+    // against the generous fallback cap can be left stuck showing font sizes
+    // _fitLyricFont only shrank enough for THAT cap, not the smaller real
+    // one -- silently ellipsis-clipped with no further correction. Landscape
+    // phone makes this matter more: its much shorter #panel height computes
+    // a noticeably smaller real cap than the 65px/18px fallback, widening
+    // the gap. Re-running the fit here (only when a guitar/bass song is
+    // actually showing) closes that window regardless of which value was
+    // stale.
+    if(S.song&&STRING_INST[S.instrument])_buildPhraseRows();
   }).observe(document.getElementById('panel'));
 })();
 // Wrap logo in link

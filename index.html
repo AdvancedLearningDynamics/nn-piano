@@ -1900,6 +1900,15 @@ const SKINS = {
 // with the same cover math the browser itself uses keeps the sprite
 // pinned to the same physical point in the artwork at any panel size.
 const MAYAN_BG_W = 1400, MAYAN_BG_H = 467; // native pixel size of SKINS.mayan.bgImg
+// Where, in the RAW (pre-rotation) sprite frame, the flame actually roots --
+// measured directly from the sprite sheet's own alpha channel (the root
+// sits at a near-fixed spot across all 8 frames; only the flickering tip
+// moves). NOT the box's plain geometric center (50%,50%) -- anchoring at
+// center was exactly why the flames rendered floating above their bowls
+// instead of sitting on them. transform-origin AND the translate() below
+// both use this same pair so the anchor point (not the box center) lands
+// at each instance's xPct/yPct, regardless of the -90deg rotation.
+const MAYAN_FIRE_ANCHOR_X_PCT = 6.22, MAYAN_FIRE_ANCHOR_Y_PCT = 49.72;
 // Six instances tuned via the Fire Spell Placement Lab -- ground brazier
 // pair, mid-height wall torches, and the two outer pillar torches (their
 // bigger scale matches those torches' own larger flames in the art).
@@ -1911,12 +1920,12 @@ const MAYAN_BG_W = 1400, MAYAN_BG_H = 467; // native pixel size of SKINS.mayan.b
 // each other instead of identically (see _tickMayanFireSprites below);
 // opacity (0-1) is applied once at build time, per instance.
 const MAYAN_FIRE_INSTANCES = [
-  { xPct: 60.15, yPct: 50.66, scale: 0.161, rot: -90, w: 29,  h: 16, startFrame: 0, opacity: 0.50 },
-  { xPct: 75.07, yPct: 50.08, scale: 0.161, rot: -90, w: 29,  h: 16, startFrame: 2, opacity: 0.50 },
-  { xPct: 91.07, yPct: 55.45, scale: 0.500, rot: -90, w: 90,  h: 51, startFrame: 6, opacity: 0.50 },
-  { xPct: 8.39,  yPct: 52.20, scale: 0.580, rot: -90, w: 104, h: 59, startFrame: 7, opacity: 0.67 },
-  { xPct: 50.34, yPct: 74.41, scale: 0.210, rot: -90, w: 38,  h: 21, startFrame: 4, opacity: 0.50 },
-  { xPct: 63.44, yPct: 73.76, scale: 0.260, rot: -90, w: 47,  h: 26, startFrame: 1, opacity: 0.50 },
+  { xPct: 50.42, yPct: 77.26, scale: 0.161, rot: -90, w: 29,  h: 16, startFrame: 0, opacity: 0.50 },
+  { xPct: 75.17, yPct: 51.24, scale: 0.161, rot: -90, w: 29,  h: 16, startFrame: 2, opacity: 0.50 },
+  { xPct: 91.06, yPct: 62.62, scale: 0.580, rot: -90, w: 104, h: 59, startFrame: 6, opacity: 0.74 },
+  { xPct: 8.33,  yPct: 59.34, scale: 0.580, rot: -90, w: 104, h: 59, startFrame: 7, opacity: 0.67 },
+  { xPct: 60.26, yPct: 53.25, scale: 0.210, rot: -90, w: 38,  h: 21, startFrame: 4, opacity: 0.50 },
+  { xPct: 63.40, yPct: 77.54, scale: 0.260, rot: -90, w: 47,  h: 26, startFrame: 1, opacity: 0.50 },
 ];
 // Creates one .mayan-fire-spell div per MAYAN_FIRE_INSTANCES entry.
 // Idempotent by construction only if called once -- call it exactly once
@@ -1941,7 +1950,8 @@ function buildMayanFireSprites(){
     el.dataset.fireIdx = i;
     el.style.width = inst.w+'px'; el.style.height = inst.h+'px';
     el.style.backgroundSize = (inst.w*8)+'px '+inst.h+'px';
-    el.style.transform = `translate(-50%,-50%) rotate(${inst.rot}deg)`;
+    el.style.transformOrigin = `${MAYAN_FIRE_ANCHOR_X_PCT}% ${MAYAN_FIRE_ANCHOR_Y_PCT}%`;
+    el.style.transform = `translate(-${MAYAN_FIRE_ANCHOR_X_PCT}%,-${MAYAN_FIRE_ANCHOR_Y_PCT}%) rotate(${inst.rot}deg)`;
     el.style.opacity = inst.opacity;
     panel.insertBefore(el, anchor);
   });

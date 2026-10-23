@@ -5122,7 +5122,10 @@ document.getElementById('inst-sel').value='piano';
 // automatically included with no list to keep in sync by hand.
 (function(){
   const ids=Object.keys(SKINS);
-  S.skin=ids[Math.floor(Math.random()*ids.length)];
+  // ?skin=<id> in the page URL picks a skin (the website's "Try it" embed uses it so its loading picture matches).
+  let want = null;
+  try { want = new URLSearchParams(location.search).get('skin'); } catch (e) {}
+  S.skin = (want && ids.indexOf(want) >= 0) ? want : ids[Math.floor(Math.random()*ids.length)];
 })();
 buildMayanFireSprites();
 buildChristmasFireSprites();
